@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "outDir": "dist",
+    "moduleResolution": "Node",
+    "module": "ES6",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "declarationMap": false,
+    "skipLibCheck": true
+  },
+  "extends": "./node_modules/gts/tsconfig-google.json",
+  "include": ["src"]
+}
