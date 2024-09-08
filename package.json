@@ -48,7 +48,7 @@
     "rfc6902"
   ],
   "engines": {
-    "node": ">=9.0.0"
+    "node": ">=10.4.0"
   },
   "readme": "./README.md"
 }

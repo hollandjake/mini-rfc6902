@@ -13,7 +13,6 @@ const numberB = 2;
 const stringA = 'hello';
 const stringB = 'world';
 const funcA = function a() {};
-const funcAClone = function a() {};
 const funcB = function b() {};
 const objA = { some_key: 'some_val' };
 const objB = { some_other_key: 'some_other_val' };
@@ -44,21 +43,27 @@ describe('create', () => {
       array: arrayB,
     };
 
-    test('maxi', ({ expect }) => {
+    test('default', ({ expect }) => {
       const patch = create(a, b);
       expect(patch).not.toEqual(null);
       expect(apply(a, patch!)).toEqual(b);
     });
 
+    test('maxi', ({ expect }) => {
+      const patch = create(a, b, { transform: 'maximize' });
+      expect(patch).not.toEqual(null);
+      expect(apply(a, patch!)).toEqual(b);
+    });
+
     test('mini', ({ expect }) => {
-      const patch = create(a, b, { minify: true });
+      const patch = create(a, b, { transform: 'minify' });
       expect(patch).not.toEqual(null);
       expect(apply(a, patch!)).toEqual(b);
     });
 
     test('custom', ({ expect }) => {
       const patch = create(a, b, {
-        diff: (i, o, p, skip) => {
+        diff: (_, o, p) => {
           // example force all to be removed and added
           return [
             ['-', p],
