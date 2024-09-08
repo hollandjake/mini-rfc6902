@@ -98,14 +98,16 @@ function cloneObject<T extends object>(val: T, opts: WithSkip<CloneOpts> & { [re
   const ref = opts[refs]?.get(val);
   if (typeof ref !== 'undefined') return ref;
 
-  const cloned = Object.create(val);
+  const cloned = Object.assign({}, val);
+  Object.setPrototypeOf(cloned, Object.getPrototypeOf(val));
+
   opts[refs].set(val, cloned);
 
-  Object.keys(val).forEach(k => {
-    cloned[k] = clone(val[k as never], opts);
+  Object.getOwnPropertyNames(val).forEach(k => {
+    cloned[k as never] = clone(val[k as never], opts);
   });
   Object.getOwnPropertySymbols(val).forEach(k => {
-    cloned[k] = clone(val[k as never], opts);
+    cloned[k as never] = clone(val[k as never], opts);
   });
 
   return cloned;

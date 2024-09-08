@@ -58,6 +58,7 @@ describe('JS Natives', () => {
       ] as [string, any][]),
     ],
     [new Date(1234)],
+    [new Error('some error')],
     [new RegExp('some(.+?)val', 'g')],
     [/some(.+?)val/g],
     [new Uint8Array([1, 2, 3])],
