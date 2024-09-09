@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.1.2...v0.2.0) (2024-09-09)
+
+
+### Features
+
+* change BSONification to string rather than Uint8Array ([0b741fb](https://github.com/hollandjake/mini-rfc6902/commit/0b741fb03cc7359f4190d0b1fe9987d129b4cbcc))
+
 ## [0.1.2](https://github.com/hollandjake/mini-rfc6902/compare/v0.1.1...v0.1.2) (2024-09-08)
 
 
