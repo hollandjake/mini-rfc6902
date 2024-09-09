@@ -1,4 +1,4 @@
-import { TextDecoder, TextEncoder } from 'util';
+import { TextDecoder } from 'util';
 import { MissingError, PointerError } from './error';
 
 type Token = string | number | { toString: () => string };
@@ -112,10 +112,10 @@ export class Pointer {
   }
 
   /**
-   * Efficiently convert pointers to binary array for compression storage size
+   * Convert pointers to string for easy BSONification
    */
-  public toBSON(): Uint8Array {
-    return new TextEncoder().encode(this.toString());
+  public toBSON(): string {
+    return this.toString();
   }
 
   public toJSON() {

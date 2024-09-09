@@ -25,7 +25,7 @@ describe('toString', () => {
 
 test('toBSON', ({ expect }) => {
   const p = new Pointer(['foo', '\u03A9', 0]);
-  expect(p.toBSON()).toEqual(new Uint8Array([47, 102, 111, 111, 47, 206, 169, 47, 48]));
+  expect(p.toBSON()).toEqual('/foo/\u03A9/0');
 });
 
 describe('from', () => {
