@@ -6,7 +6,7 @@ describe('primitive', () => {
     '%s',
     ([value], { expect }) => {
       expect(clone(value, {})).toEqual(value);
-    }
+    },
   );
 });
 
@@ -19,7 +19,7 @@ describe('array', () => {
       expect(cloned).toEqual(value);
       // But not in reference
       expect(cloned).not.toBe(value);
-    }
+    },
   );
 });
 
@@ -97,7 +97,7 @@ describe('object', () => {
       expect(cloned).toEqual(value);
       // But not in reference
       expect(cloned).not.toBe(value);
-    }
+    },
   );
 });
 
