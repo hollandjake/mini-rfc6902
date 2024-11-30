@@ -39,7 +39,7 @@ export type Differ<O extends object = {}> = (
   input: Exclude<any, null | undefined>,
   output: Exclude<any, null | undefined>,
   ptr: Pointer,
-  opts: WithSkip<DiffOpts> & O,
+  opts: WithSkip<DiffOpts> & O
 ) => Patch;
 
 /**
@@ -54,7 +54,7 @@ export type Differ<O extends object = {}> = (
 export type EqFunc<O extends object = {}> = (
   x: Exclude<any, null | undefined>,
   y: Exclude<any, null | undefined>,
-  opts: WithSkip<EqOpts> & O,
+  opts: WithSkip<EqOpts> & O
 ) => boolean;
 
 export type WithSkip<T> = T & { skip: SkipFunc };

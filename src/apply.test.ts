@@ -243,7 +243,7 @@ describe('Extended Spec', () => {
       apply(a, [
         ['+', '/foo', obj],
         ['~', '/foo/bar', 'qux'],
-      ]),
+      ])
     ).toEqual({ foo: { bar: 'qux' } });
 
     expect(obj).toEqual({ bar: 'baz' });
@@ -253,7 +253,7 @@ describe('Extended Spec', () => {
       '%o -> {}',
       ([a], { expect }) => {
         expect(apply(a, [['~', '', {}]])).toEqual({});
-      },
+      }
     );
   });
 });

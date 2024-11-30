@@ -31,7 +31,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
         ...opts,
         skip,
       }),
-      opts,
+      opts
     );
   } catch (e) {
     if (e !== SKIP) throw e;
@@ -45,7 +45,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
           ...opts,
           skip,
         }),
-        opts,
+        opts
       );
     } catch (e) {
       if (e !== SKIP) throw e;
@@ -60,7 +60,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
           ...opts,
           skip,
         }),
-        opts,
+        opts
       );
     } catch (e) {
       if (e !== SKIP) throw e;
@@ -128,10 +128,10 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
   const outputSize = output.length;
 
   const dp: number[][] = Array.from({ length: inputSize + 1 }, () =>
-    Array.from({ length: outputSize + 1 }, () => Infinity),
+    Array.from({ length: outputSize + 1 }, () => Infinity)
   );
   const ops: (Mini.Op | null)[][] = Array.from({ length: inputSize + 1 }, () =>
-    Array.from({ length: outputSize + 1 }, () => null),
+    Array.from({ length: outputSize + 1 }, () => null)
   );
 
   // Base cases
@@ -254,7 +254,7 @@ function diffMap(
   input: Map<any, any>,
   output: Map<any, any>,
   ptr: Pointer,
-  opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
+  opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] }
 ): Patch {
   if (eqMap(input, output, opts)) return [];
 
@@ -298,7 +298,7 @@ function diffObject(
   input: object,
   output: object,
   ptr: Pointer,
-  opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
+  opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] }
 ): Patch {
   if (eqObject(input, output, opts)) return [];
 
