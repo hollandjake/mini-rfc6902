@@ -36,6 +36,8 @@ export class Pointer {
       } else {
         obj.splice(Number(key), 1);
       }
+    } else if (obj instanceof Map) {
+      obj.delete(key);
     } else if (key !== undefined) {
       delete obj![key as never];
     }
@@ -105,7 +107,11 @@ export class Pointer {
     const [obj, key] = this.evaluatePointer(a);
 
     if (key !== undefined) {
-      obj![key as never] = value as never;
+      if (obj instanceof Map) {
+        obj.set(key, value);
+      } else {
+        obj![key as never] = value as never;
+      }
     }
 
     return a;
