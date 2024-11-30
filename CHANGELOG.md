@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.1...v0.2.2) (2024-11-30)
+
+
+### Bug Fixes
+
+* fix linting issues ([5e9d4a0](https://github.com/hollandjake/mini-rfc6902/commit/5e9d4a0f19ee8b0846cd25de70b8dc97998f9adc))
+
 ## [0.2.1](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.0...v0.2.1) (2024-11-30)
 
 
