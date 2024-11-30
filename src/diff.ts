@@ -211,7 +211,8 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
     const op = ops[inputIndex][outputIndex];
     if (op) {
       if (op[0] === '+') {
-        operations.unshift(op);
+        // Changes to the array shape need to be appended rather than prepended
+        operations.push(op);
         outputIndex--;
       } else if (op[0] === '-') {
         operations.unshift(op);
@@ -222,7 +223,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
           // Early termination since we replaced the entire array
           return operations;
         }
-        operations.unshift(op);
+        operations.push(op);
         inputIndex--;
         outputIndex--;
       } else if (op[0] === '^') {

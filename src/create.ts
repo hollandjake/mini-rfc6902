@@ -4,14 +4,12 @@ import { RootPointer } from './pointer';
 import { CreateOpts } from './utils';
 
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `a` into `b`.
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
  * as a full replacement may result in more bytes being sent.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
- *
- * Equality checks are performed using nodes util `isDeepStrictEqual` for maximum performance
  *
  * The output will be a {@link Patch full size patch}
  *
@@ -20,14 +18,12 @@ import { CreateOpts } from './utils';
  */
 export function create(input: any, output: any): Patch | null;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `a` into `b`.
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
  * as a full replacement may result in more bytes being sent.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
- *
- * Equality checks are performed using nodes util `isDeepStrictEqual` for maximum performance
  *
  * The output will be a {@link Mini.Patch minified patch}
  *
@@ -38,14 +34,12 @@ export function create(input: any, output: any): Patch | null;
  */
 export function create(input: any, output: any, opts: CreateOpts & { transform: 'minify' }): Mini.Patch | null;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `a` into `b`.
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
  * as a full replacement may result in more bytes being sent.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
- *
- * Equality checks are performed using nodes util `isDeepStrictEqual` for maximum performance
  *
  * The output will be a {@link Mini.Patch minified patch}
  *
@@ -56,14 +50,12 @@ export function create(input: any, output: any, opts: CreateOpts & { transform: 
  */
 export function create(input: any, output: any, opts: CreateOpts & { transform: 'maximize' }): Maxi.Patch | null;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `a` into `b`.
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
  * as a full replacement may result in more bytes being sent.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
- *
- * Equality checks are performed using nodes util `isDeepStrictEqual` for maximum performance
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
@@ -71,14 +63,12 @@ export function create(input: any, output: any, opts: CreateOpts & { transform: 
  */
 export function create(input: any, output: any, opts: CreateOpts): Patch | null;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `a` into `b`.
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
  * as a full replacement may result in more bytes being sent.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
- *
- * Equality checks are performed using nodes util `isDeepStrictEqual` for maximum performance
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
