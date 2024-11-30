@@ -9,7 +9,7 @@ import { ApplyOpts, clone, eq } from './utils';
  * @param patch - The patch to apply
  * @param opts - Optional options for custom handling
  */
-export function apply<DocType>(target: DocType, patch: Patch, opts: ApplyOpts = {}) {
+export function apply<DocType>(target: DocType, patch: Patch | null, opts: ApplyOpts = {}) {
   // Create a deep copy of the object
   let b: unknown = clone(target, opts);
 
