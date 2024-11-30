@@ -62,7 +62,22 @@ function cloneCustom<T extends { clone: Function }>(val: T, opts: WithSkip<Clone
   return val.clone() as T;
 }
 
-function cloneWrapper<T extends String | Number | Boolean | BigInt | Symbol>(val: T, opts: WithSkip<CloneOpts>): T {
+function cloneWrapper<
+  T extends
+    | String
+    | Number
+    | Boolean
+    | BigInt
+    | Symbol
+    | Date
+    | RegExp
+    | Uint8Array
+    | Uint16Array
+    | Uint32Array
+    | Float32Array
+    | Float64Array
+    | DataView,
+>(val: T, opts: WithSkip<CloneOpts>): T {
   if (
     !(val instanceof String) &&
     !(val instanceof Number) &&
@@ -75,7 +90,8 @@ function cloneWrapper<T extends String | Number | Boolean | BigInt | Symbol>(val
     !(val instanceof Uint16Array) &&
     !(val instanceof Uint32Array) &&
     !(val instanceof Float32Array) &&
-    !(val instanceof Float64Array)
+    !(val instanceof Float64Array) &&
+    !(val instanceof DataView)
   )
     opts.skip();
   return structuredClone(val);
