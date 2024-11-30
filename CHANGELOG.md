@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.2...v0.2.3) (2024-11-30)
+
+
+### Bug Fixes
+
+* rollback fix for build ([a01e03b](https://github.com/hollandjake/mini-rfc6902/commit/a01e03bb7f196b68e9e597427ee25c25a6dc27d1))
+
 ## [0.2.2](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.1...v0.2.2) (2024-11-30)
 
 
