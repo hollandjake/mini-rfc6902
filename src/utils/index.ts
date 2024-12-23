@@ -1,3 +1,3 @@
-export { clone } from './clone';
-export * from './eq';
-export * from './types';
+export { clone } from './clone.js';
+export * from './eq.js';
+export * from './types.js';

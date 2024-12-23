@@ -1,5 +1,5 @@
-import { maximizeOp, Mini, minifyOp, Op, Patch } from './patch';
-import { Pointer } from './pointer';
+import { maximizeOp, Mini, minifyOp, Op, Patch } from './patch.js';
+import { Pointer } from './pointer.js';
 import {
   clone,
   CreateOpts,
@@ -16,7 +16,7 @@ import {
   SKIP,
   skip,
   WithSkip,
-} from './utils';
+} from './utils/index.js';
 
 const defaultDiffers: Differ[] = [diffFunction, diffPrimitive, diffArray, diffWrapper, diffSet, diffMap, diffObject];
 

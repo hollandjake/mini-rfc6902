@@ -1,7 +1,7 @@
-import { TestError } from './error';
-import { Mini, minify, Patch } from './patch';
-import { Pointer } from './pointer';
-import { ApplyOpts, clone, eq } from './utils';
+import { TestError } from './error.js';
+import { Mini, minify, Patch } from './patch.js';
+import { Pointer } from './pointer.js';
+import { ApplyOpts, clone, eq } from './utils/index.js';
 
 /**
  *

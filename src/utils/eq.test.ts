@@ -1,5 +1,5 @@
 import { describe, test } from 'vitest';
-import { eq } from './eq';
+import { eq } from './eq.js';
 
 const funcA = function a() {};
 const funcAClone = function a() {};

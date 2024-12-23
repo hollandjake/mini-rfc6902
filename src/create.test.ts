@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest';
-import { apply } from './apply';
-import { create } from './create';
+import { apply } from './apply.js';
+import { create } from './create.js';
 
 const undefinedA = undefined;
 const undefinedB = undefined;

@@ -1,5 +1,4 @@
-import { TextDecoder } from 'util';
-import { MissingError, PointerError } from './error';
+import { MissingError, PointerError } from './error.js';
 
 type Token = string | number | { toString: () => string };
 

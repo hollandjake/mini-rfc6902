@@ -2,7 +2,9 @@
 [![documentation](https://img.shields.io/badge/documentation-yes-brightgreen.svg) ](https://github.com/hollandjake/mini-rfc6902/blob/main/README.md)
 [![licence](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/hollandjake/mini-rfc6902/blob/main/LICENSE)
 
-# mini-rfc6902
+# @innerfuse/mini-rfc6902
+
+A fork of `mini-rfc6902` package to improve the typings in TypeScript by making it succeed the '' tests.
 
 > Complete TypeScript implementation of [RFC6902](https://datatracker.ietf.org/doc/html/rfc6902) "JavaScript Object
 > Notation (JSON) Patch"
@@ -27,7 +29,7 @@ const { create, apply } = require('mini-rfc6902');
 or
 
 ```ts
-import { create, apply } from "mini-rfc6902";
+import { create, apply } from 'mini-rfc6902';
 ```
 
 ## Usage
@@ -42,9 +44,9 @@ create({ first: 'Jake' }, { first: 'Jake', last: 'Holland' });
 ### Apply a patch
 
 ```ts
-const obj = { first: 'Jake' }
+const obj = { first: 'Jake' };
 const patch = [{ op: 'add', path: '/last', value: 'Holland' }];
-apply(obj, patch)
+apply(obj, patch);
 // { first: 'Jake', last: 'Holland' }
 ```
 
@@ -70,6 +72,7 @@ to ensure mutations don't occur.
 calling the `opts.skip()` method from within this definition will allow the default clone handlers to run
 
 ####
+
 `opts.diff(input: Exclude<any, null | undefined>, output: Exclude<any, null | undefined>, ptr: Pointer, opts: {skip: () => void}): Patch`
 
 User defined diff creation function, this is called whenever we hit a point to compute the difference between two values
@@ -137,7 +140,7 @@ Thanks to [rfc6902](https://github.com/chbrown/rfc6902) for the inspiration
 
 ## Authors
 
-* **[Jake Holland](https://github.com/hollandjake)**
+- **[Jake Holland](https://github.com/hollandjake)**
 
 See also the list of [contributors](https://github.com/hollandjake/mini-rfc6902/contributors) who participated in this
 project.

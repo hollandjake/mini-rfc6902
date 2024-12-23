@@ -1,5 +1,5 @@
-import { InvalidOperationError } from './error';
-import { Pointer } from './pointer';
+import { InvalidOperationError } from './error.js';
+import { Pointer } from './pointer.js';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Mini {
