@@ -1,5 +1,5 @@
 import { describe, test } from 'vitest';
-import { Pointer } from './pointer';
+import { Pointer } from './pointer.js';
 
 describe('toString', () => {
   /**

@@ -1,5 +1,5 @@
 import { describe, test } from 'vitest';
-import { clone } from './clone';
+import { clone } from './clone.js';
 
 describe('primitive', () => {
   test.for([[null], [undefined], [123], ['string'], [BigInt(123)], [function () {}], [Symbol('symbol')]])(

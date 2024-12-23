@@ -1,8 +1,8 @@
 import { describe, test } from 'vitest';
-import { diff } from './diff';
-import { minifyOp } from './patch';
-import { RootPointer } from './pointer';
-import { EQUALITY_TESTS } from './utils/eq.test';
+import { diff } from './diff.js';
+import { minifyOp } from './patch.js';
+import { RootPointer } from './pointer.js';
+import { EQUALITY_TESTS } from './utils/eq.test.js';
 
 const funcA = function a() {};
 const funcAClone = function a() {};

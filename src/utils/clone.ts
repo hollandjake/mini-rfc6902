@@ -1,4 +1,4 @@
-import { CloneOpts, Cloner, skip, SKIP, WithSkip } from './types';
+import { CloneOpts, Cloner, skip, SKIP, WithSkip } from './types.js';
 
 const defaultCloners: Cloner[] = [
   clonePrimitive,

@@ -9,5 +9,6 @@
     "skipLibCheck": true
   },
   "extends": "./node_modules/gts/tsconfig-google.json",
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }

@@ -1,7 +1,7 @@
-import { diff } from './diff';
-import { Maxi, maximize, Mini, minify, Patch } from './patch';
-import { RootPointer } from './pointer';
-import { CreateOpts } from './utils';
+import { diff } from './diff.js';
+import { Maxi, maximize, Mini, minify, Patch } from './patch.js';
+import { RootPointer } from './pointer.js';
+import { CreateOpts } from './utils/index.js';
 
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.

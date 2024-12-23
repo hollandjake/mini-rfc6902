@@ -1,7 +1,7 @@
 import { describe, test } from 'vitest';
-import { apply } from './apply';
-import { Patch } from './patch';
-import { Pointer } from './pointer';
+import { apply } from './apply.js';
+import { Patch } from './patch.js';
+import { Pointer } from './pointer.js';
 
 /**
  * https://datatracker.ietf.org/doc/html/rfc6902#appendix-A

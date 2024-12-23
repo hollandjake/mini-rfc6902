@@ -1,4 +1,4 @@
-import { Op } from './patch';
+import { Op } from './patch.js';
 
 export class PointerError extends Error {}
 

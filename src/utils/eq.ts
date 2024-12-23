@@ -1,4 +1,4 @@
-import { EqFunc, EqOpts, SKIP, skip, WithSkip } from './types';
+import { EqFunc, EqOpts, SKIP, skip, WithSkip } from './types.js';
 
 const defaultEqFunc: EqFunc[] = [eqFunction, eqPrimitive, eqArray, eqWrapper, eqSet, eqMap, eqObject];
 

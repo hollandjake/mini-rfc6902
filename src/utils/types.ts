@@ -1,5 +1,5 @@
-import { Patch } from '../patch';
-import { Pointer } from '../pointer';
+import { Patch } from '../patch.js';
+import { Pointer } from '../pointer.js';
 
 export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
