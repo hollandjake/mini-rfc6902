@@ -4,11 +4,7 @@ import { MissingError, PointerError } from './error';
 type Token = string | number | { toString: () => string };
 
 export class Pointer {
-  readonly leafToken: Token | undefined;
-
-  constructor(readonly tokens: Token[]) {
-    this.leafToken = tokens[tokens.length - 1];
-  }
+  constructor(readonly tokens: Token[]) {}
 
   public static from(str: Pointer | string | Uint8Array | ArrayBuffer) {
     if (str instanceof Pointer) return str;
