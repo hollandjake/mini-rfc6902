@@ -59,7 +59,6 @@ export function eqNullable(x: unknown, y: unknown, opts: WithSkip<EqOpts>): bool
   if (x !== null && y === null) return false;
 
   opts.skip();
-  return false;
 }
 
 export function eqFunction(x: unknown, y: unknown, opts: WithSkip<EqOpts>): boolean {
@@ -142,7 +141,6 @@ export function eqWrapper(x: object, y: object, opts: WithSkip<EqOpts>): boolean
   }
 
   opts.skip();
-  return false;
 }
 
 export function eqSet(x: object, y: object, opts: WithSkip<EqOpts>): boolean {

@@ -28,3 +28,11 @@ export class InvalidOperationError extends Error {
     super(`Invalid operation: '${JSON.stringify(op)}'`);
   }
 }
+
+export class InvalidPatchError extends Error {
+  name = 'InvalidPatchError';
+
+  constructor(public patch: any) {
+    super(`Invalid patch: '${patch}'`);
+  }
+}

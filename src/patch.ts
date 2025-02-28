@@ -1,26 +1,26 @@
-import { InvalidOperationError } from './error';
+import { InvalidOperationError, InvalidPatchError } from './error';
 import { Pointer } from './pointer';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Mini {
-  export type AddOp<V = unknown> = [op: '+', path: Pointer | string, value: V];
+  export type AddOp<V = any> = [op: '+', path: Pointer | string, value: V];
   export type RemoveOp = [op: '-', path: Pointer | string];
-  export type ReplaceOp<V = unknown> = [op: '~', path: Pointer | string, value: V];
+  export type ReplaceOp<V = any> = [op: '~', path: Pointer | string, value: V];
   export type MoveOp = [op: '>', from: Pointer | string, to: Pointer | string];
   export type CopyOp = [op: '^', from: Pointer | string, to: Pointer | string];
-  export type TestOp<V = unknown> = [op: '?', path: Pointer | string, value: V];
+  export type TestOp<V = any> = [op: '?', path: Pointer | string, value: V];
   export type Op = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;
   export type Patch = Op[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Maxi {
-  export type AddOp<V = unknown> = { op: 'add'; path: Pointer | string; value: V };
+  export type AddOp<V = any> = { op: 'add'; path: Pointer | string; value: V };
   export type RemoveOp = { op: 'remove'; path: Pointer | string };
-  export type ReplaceOp<V = unknown> = { op: 'replace'; path: Pointer | string; value: V };
+  export type ReplaceOp<V = any> = { op: 'replace'; path: Pointer | string; value: V };
   export type MoveOp = { op: 'move'; from: Pointer | string; path: Pointer | string };
   export type CopyOp = { op: 'copy'; from: Pointer | string; path: Pointer | string };
-  export type TestOp<V = unknown> = { op: 'test'; path: Pointer | string; value: V };
+  export type TestOp<V = any> = { op: 'test'; path: Pointer | string; value: V };
   export type Op = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;
   export type Patch = Op[];
 }
@@ -29,6 +29,7 @@ export type Op = Mini.Op | Maxi.Op;
 export type Patch = Op[];
 
 export function minify(patch: Patch): Mini.Patch {
+  if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(minifyOp);
 }
 
@@ -52,6 +53,7 @@ export function minifyOp(op: Op): Mini.Op {
 }
 
 export function maximize(patch: Patch): Maxi.Patch {
+  if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(maximizeOp);
 }
 
@@ -79,9 +81,7 @@ function isPointerable(x: unknown): x is Pointer | string {
   if (typeof x === 'string') return true;
   if (x instanceof Pointer) return true;
   if (x instanceof Uint8Array) return true;
-  if (typeof x === 'object' && 'buffer' in x && x['buffer'] instanceof Uint8Array) return true;
-
-  return false;
+  return typeof x === 'object' && 'buffer' in x && x['buffer'] instanceof Uint8Array;
 }
 
 function isMinified(op: Op): op is Mini.Op {

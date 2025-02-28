@@ -3,16 +3,17 @@ import { Pointer } from '../pointer';
 
 export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
-export type DiffOpts = EqOpts & CloneOpts & { diff?: Differ };
-type TransformOpts = { transform?: 'minify' | 'maximize' };
-export type CreateOpts = DiffOpts & TransformOpts;
+export type Transformer = 'minify' | 'maximize';
+type TransformOpts = { transform?: Transformer };
+export type DiffOpts = EqOpts & CloneOpts & TransformOpts & { diff?: Differ };
+export type CreateOpts = DiffOpts;
 
 export type ApplyOpts = EqOpts & CloneOpts & TransformOpts;
 
-export type SkipFunc = () => void;
+export type SkipFunc = () => never;
 export const SKIP = Symbol('skip');
 
-export function skip() {
+export function skip(): never {
   throw SKIP;
 }
 
@@ -58,3 +59,10 @@ export type EqFunc<O extends object = {}> = (
 ) => boolean;
 
 export type WithSkip<T> = T & { skip: SkipFunc };
+
+/**
+ * Implementing this allows the system to use your own patches rather than a full replacement of the object
+ */
+export interface Diffable {
+  diff(output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch;
+}

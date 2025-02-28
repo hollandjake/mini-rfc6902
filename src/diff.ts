@@ -15,6 +15,7 @@ import {
   eqWrapper,
   SKIP,
   skip,
+  transform,
   WithSkip,
 } from './utils';
 
@@ -22,16 +23,19 @@ const defaultDiffers: Differ[] = [diffFunction, diffPrimitive, diffArray, diffWr
 
 export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOpts): Patch {
   // Are they equal, then return empty diff
-  if (eq(input, output, opts)) return [];
+  if (eq(input, output, opts)) return transform([], opts.transform);
 
-  // Handle a not instance of b
+  // Handle a xor b nullable
   try {
-    return clone(
-      diffNullable(input, output, ptr, {
-        ...opts,
-        skip,
-      }),
-      opts,
+    return transform(
+      clone(
+        diffNullable(input, output, ptr, {
+          ...opts,
+          skip,
+        }),
+        opts,
+      ),
+      opts.transform,
     );
   } catch (e) {
     if (e !== SKIP) throw e;
@@ -40,12 +44,15 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
   // Run custom
   if (opts?.diff) {
     try {
-      return clone(
-        opts.diff(input, output, ptr, {
-          ...opts,
-          skip,
-        }),
-        opts,
+      return transform(
+        clone(
+          opts.diff(input, output, ptr, {
+            ...opts,
+            skip,
+          }),
+          opts,
+        ),
+        opts.transform,
       );
     } catch (e) {
       if (e !== SKIP) throw e;
@@ -55,12 +62,15 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
   // Run through default handlers
   for (const differ of defaultDiffers) {
     try {
-      return clone(
-        differ(input, output, ptr, {
-          ...opts,
-          skip,
-        }),
-        opts,
+      return transform(
+        clone(
+          differ(input, output, ptr, {
+            ...opts,
+            skip,
+          }),
+          opts,
+        ),
+        opts.transform,
       );
     } catch (e) {
       if (e !== SKIP) throw e;
@@ -68,13 +78,13 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
   }
 
   // Still don't know the type so just do a full replacement
-  return [['~', ptr, clone(output, opts)]];
+  return transform([['~', ptr, clone(output, opts)]], opts.transform);
 }
 
 /**
  * If one side is nullish then we immediately know the most optimal solution
  */
-function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   if (eqNullable(input, output, opts)) return [];
 
   if (input === undefined) return [['+', ptr, output]];
@@ -89,13 +99,13 @@ function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithS
 function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   if (!(typeof input === 'object' && 'diff' in input && typeof input.diff === 'function')) opts.skip();
 
-  return (input as any).diff(output, ptr, opts);
+  return transform((input as any).diff(output, ptr, opts), 'minify');
 }
 
 /**
  * Compare two primitive types
  */
-function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   return eqPrimitive(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
@@ -113,7 +123,12 @@ function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: With
  *  - Add support for move (alias for remove and add)
  *  - Add support for sub index mutations
  */
-function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, opts: WithSkip<CreateOpts>): Patch {
+function diffArray(
+  input: Array<unknown>,
+  output: Array<unknown>,
+  ptr: Pointer,
+  opts: WithSkip<CreateOpts>,
+): Mini.Patch {
   if (eqArray(input, output, opts)) return [];
 
   function getCost(x: Op) {
@@ -203,7 +218,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
   }
 
   // Backtrack to get the operations list
-  const operations: Patch = [];
+  const operations: Mini.Patch = [];
 
   for (let inputIndex = inputSize, outputIndex = outputSize; inputIndex > 0 || outputIndex > 0; ) {
     const op = ops[inputIndex][outputIndex];
@@ -237,11 +252,11 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
   return operations;
 }
 
-function diffWrapper(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+function diffWrapper(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   return eqWrapper(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
-function diffSet(input: Set<unknown>, output: Set<unknown>, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+function diffSet(input: Set<unknown>, output: Set<unknown>, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   return eqSet(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
@@ -253,10 +268,10 @@ function diffMap(
   output: Map<any, any>,
   ptr: Pointer,
   opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
-): Patch {
+): Mini.Patch {
   if (eqMap(input, output, opts)) return [];
 
-  const ops: Patch = [];
+  const ops: Mini.Patch = [];
 
   // If recursion occurs then force a full replacement and let the user handle serializing it
   let length = opts[inputSeen]?.length ?? 0;
@@ -271,12 +286,12 @@ function diffMap(
 
   // Check for updates on existing keys, this covers both Update and Deletion due to undefined checks
   for (const key of input.keys()) {
-    ops.push(...diff(input.get(key), output.get(key), ptr.extend(key), opts));
+    ops.push(...transform(diff(input.get(key), output.get(key), ptr.extend(key), opts), 'minify'));
   }
 
   // Find keys that are in the output but not in the input (Addition)
   for (const key of output.keys()) {
-    if (!input.has(key)) ops.push(...diff(undefined, output.get(key), ptr.extend(key), opts));
+    if (!input.has(key)) ops.push(...transform(diff(undefined, output.get(key), ptr.extend(key), opts), 'minify'));
   }
 
   opts[inputSeen].pop();
@@ -297,10 +312,10 @@ function diffObject(
   output: object,
   ptr: Pointer,
   opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
-): Patch {
+): Mini.Patch {
   if (eqObject(input, output, opts)) return [];
 
-  const ops: Patch = [];
+  const ops: Mini.Patch = [];
 
   // If recursion occurs then force a full replacement and let the user handle serializing it
   let length = opts[inputSeen]?.length ?? 0;
@@ -315,18 +330,18 @@ function diffObject(
 
   // Check for updates on existing keys, this covers both Update and Deletion due to undefined checks
   for (const key of Object.keys(input)) {
-    ops.push(...diff(input[key as never], output[key as never], ptr.extend(key), opts));
+    ops.push(...transform(diff(input[key as never], output[key as never], ptr.extend(key), opts), 'minify'));
   }
   for (const key of Object.getOwnPropertySymbols(input)) {
-    ops.push(...diff(input[key as never], output[key as never], ptr.extend(key), opts));
+    ops.push(...transform(diff(input[key as never], output[key as never], ptr.extend(key), opts), 'minify'));
   }
 
   // Find keys that are in the output but not in the input (Addition)
   for (const key of Object.keys(output)) {
-    if (!(key in input)) ops.push(...diff(undefined, output[key as never], ptr.extend(key), opts));
+    if (!(key in input)) ops.push(...transform(diff(undefined, output[key as never], ptr.extend(key), opts), 'minify'));
   }
   for (const key of Object.getOwnPropertySymbols(output)) {
-    if (!(key in input)) ops.push(...diff(undefined, output[key as never], ptr.extend(key), opts));
+    if (!(key in input)) ops.push(...transform(diff(undefined, output[key as never], ptr.extend(key), opts), 'minify'));
   }
 
   opts[inputSeen].pop();
