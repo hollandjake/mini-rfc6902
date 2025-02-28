@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.3.0...v0.4.0) (2025-02-28)
+
+
+### Features
+
+* diff can now be transformed ([cab1954](https://github.com/hollandjake/mini-rfc6902/commit/cab19541d793512c7288493b53365bfb0ee1474d))
+
+
+### Bug Fixes
+
+* fixed diffFunction implementation ([35311cd](https://github.com/hollandjake/mini-rfc6902/commit/35311cd759ab5abf5a1d9e02f0d614e4c48dd3a6))
+
 ## [0.3.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.3...v0.3.0) (2025-02-28)
 
 
