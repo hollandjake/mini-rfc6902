@@ -120,7 +120,7 @@ export class Pointer {
   }
 
   public toJSON() {
-    return this.tokens;
+    return this.toString();
   }
 
   /**
