@@ -15,7 +15,7 @@ export class TestError extends Error {
 
   constructor(
     public actual: unknown,
-    public expected: unknown
+    public expected: unknown,
   ) {
     super(`Test failed: '${actual}' !== '${expected}'`);
   }
