@@ -47,6 +47,7 @@ function clonePrimitive<T extends Exclude<unknown, 'object'>>(val: T, opts: With
   if (val === null) return null as T;
   if (val === undefined) return undefined as T;
   if (val instanceof Function) return val;
+  if (val instanceof Error) return val;
 
   if (typeof val === 'object') opts.skip();
   return val;

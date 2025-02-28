@@ -58,7 +58,6 @@ describe('JS Natives', () => {
       ] as [string, any][]),
     ],
     [new Date(1234)],
-    [new Error('some error')],
     [new RegExp('some(.+?)val', 'g')],
     [/some(.+?)val/g],
     [new Uint8Array([1, 2, 3])],
@@ -72,7 +71,7 @@ describe('JS Natives', () => {
     expect(cloned).not.toBe(value);
   });
 
-  test.for([[new Function('return "hi"')]])('%s', ([value], { expect }) => {
+  test.for([[new Function('return "hi"')], [new Error('return "hi"')]])('%s', ([value], { expect }) => {
     const cloned = clone(value, {});
     // Equal in content
     expect(cloned).toEqual(value);
