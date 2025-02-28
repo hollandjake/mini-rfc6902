@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.3...v0.3.0) (2025-02-28)
+
+
+### Features
+
+* change pointers toJSON as a string ([5d62978](https://github.com/hollandjake/mini-rfc6902/commit/5d62978e5a3c53fe7d8746d4e39316bc1e56982a))
+* fix typings and browser support ([e675607](https://github.com/hollandjake/mini-rfc6902/commit/e675607c6aad5b5f0aa97f34ba5b88c8c72b7cf4))
+* remove support for cloning errors ([4184339](https://github.com/hollandjake/mini-rfc6902/commit/4184339170ccf52c401fdcec11fc5137b76155fa))
+
+
+### Bug Fixes
+
+* bump node version to 11 ([a538426](https://github.com/hollandjake/mini-rfc6902/commit/a53842675cd20990520e8ac2cc9cb6d820648563))
+* remove leafToken from pointer ([6338436](https://github.com/hollandjake/mini-rfc6902/commit/633843633148fb8cdf53af297c76fd2243fe0e41))
+
 ## [0.2.3](https://github.com/hollandjake/mini-rfc6902/compare/v0.2.2...v0.2.3) (2024-11-30)
 
 
