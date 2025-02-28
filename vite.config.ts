@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { copyFileSync } from 'node:fs';
 import dts from 'vite-plugin-dts';
 import { defineConfig } from 'vitest/config';
 
@@ -12,12 +12,19 @@ export default defineConfig({
     target: 'es6',
     minify: false,
     lib: {
-      // Could also be a dictionary or array of multiple entry points
-      entry: resolve(__dirname, './src/index.ts'),
+      entry: 'src/index.ts',
+      name: 'rfc6902',
       fileName: 'index',
-      formats: ['es', 'cjs'],
+      formats: ['es', 'cjs', 'umd'],
     },
-    ssr: true,
   },
-  plugins: [dts({ exclude: ['**/*.test.ts'] })],
+  plugins: [
+    dts({
+      rollupTypes: true,
+      exclude: ['**/*.test.ts'],
+      afterBuild: () => {
+        copyFileSync('dist/index.d.ts', 'dist/index.d.mts');
+      },
+    }),
+  ],
 });

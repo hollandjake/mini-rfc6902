@@ -12,9 +12,20 @@
   "bugs": {
     "url": "https://github.com/hollandjake/mini-rfc6902/issues"
   },
-  "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
+  "type": "commonjs",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "exports": {
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    },
+    "require": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "unpkg": "./dist/index.umd.js",
   "files": [
     "dist",
     "src"
@@ -26,21 +37,20 @@
     "lint": "gts lint",
     "lint:fix": "gts fix",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "validate": "attw --pack"
   },
   "types": "./dist/index.d.ts",
-  "dependencies": {
-    "just-clone": "^6.2.0"
-  },
   "devDependencies": {
-    "@types/node": "^22.10.1",
-    "@vitest/coverage-istanbul": "^2.1.6",
+    "@arethetypeswrong/cli": "^0.17.4",
+    "@types/node": "^22.13.5",
+    "@vitest/coverage-istanbul": "^3.0.7",
     "gts": "^6.0.2",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "typescript": "^5.7.2",
-    "vite": "^6.0.1",
-    "vite-plugin-dts": "^4.3.0",
-    "vitest": "^2.1.6"
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0",
+    "vite-plugin-dts": "^4.5.1",
+    "vitest": "^3.0.7"
   },
   "keywords": [
     "diff",

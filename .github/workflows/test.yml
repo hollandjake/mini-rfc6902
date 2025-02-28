@@ -40,5 +40,8 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Type validator
+        run: pnpm validate
+
       - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
         run: pnpm audit signatures --prod
