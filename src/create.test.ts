@@ -168,5 +168,25 @@ describe('create', () => {
       expect(patch).not.toEqual(null);
       expect(apply(a, patch)).toEqual(b);
     });
+
+    test('object with own diff function', ({ expect }) => {
+      class SomeDiffClass implements Diffable {
+        constructor(readonly someField: string) {}
+
+        diff(output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+          if (!(output instanceof SomeDiffClass)) opts.skip();
+          // Compare instances based on "someField"
+          if (output.someField === this.someField) return [];
+          // As an example, just replace the field
+          return [['~', ptr.extend('someField'), output.someField]];
+        }
+      }
+
+      const a = new SomeDiffClass('a');
+      const b = new SomeDiffClass('b');
+      const patch = create(a, b);
+      expect(patch).not.toEqual(null);
+      expect(apply(a, patch)).toEqual(b);
+    });
   });
 });

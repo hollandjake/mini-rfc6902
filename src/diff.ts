@@ -84,11 +84,9 @@ function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithS
 }
 
 /**
- * While functions are a primitive, we handle them extra specially,
- * because mongo is able to store user functions,
- * so we enable comparisons between these by using BSON serialization of functions
+ * If an input has the ability to generate a diff
  */
-function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Patch {
+function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
   if (!(typeof input === 'object' && 'diff' in input && typeof input.diff === 'function')) opts.skip();
 
   return (input as any).diff(output, ptr, opts);
