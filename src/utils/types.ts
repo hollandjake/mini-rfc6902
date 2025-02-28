@@ -3,7 +3,7 @@ import { Pointer } from '../pointer';
 
 export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
-export type Transformer = 'minify' | 'maximize';
+export type Transformer = 'minify' | 'maximize' | 'serialize';
 type TransformOpts = { transform?: Transformer };
 export type DiffOpts = EqOpts & CloneOpts & TransformOpts & { diff?: Differ };
 export type CreateOpts = DiffOpts;

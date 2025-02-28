@@ -36,3 +36,7 @@ export class InvalidPatchError extends Error {
     super(`Invalid patch: '${patch}'`);
   }
 }
+
+export class UnserializableError extends Error {
+  name = 'UnserializableError';
+}
