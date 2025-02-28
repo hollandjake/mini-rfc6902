@@ -1,4 +1,3 @@
-import { TextDecoder } from 'util';
 import { MissingError, PointerError } from './error';
 
 type Token = string | number | { toString: () => string };
