@@ -1,4 +1,4 @@
-import { maximizeOp, Mini, minifyOp, Op, Patch } from './patch';
+import { Maxi, maximizeOp, Mini, minifyOp, Op, Patch } from './patch';
 import { Pointer } from './pointer';
 import {
   clone,
@@ -7,6 +7,7 @@ import {
   DiffOpts,
   eq,
   eqArray,
+  eqCustom,
   eqMap,
   eqNullable,
   eqObject,
@@ -19,7 +20,16 @@ import {
   WithSkip,
 } from './utils';
 
-const defaultDiffers: Differ[] = [diffFunction, diffPrimitive, diffArray, diffWrapper, diffSet, diffMap, diffObject];
+const defaultDiffers: Differ[] = [
+  diffFunction,
+  diffCustom,
+  diffPrimitive,
+  diffWrapper,
+  diffArray,
+  diffSet,
+  diffMap,
+  diffObject,
+];
 
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
@@ -167,6 +177,13 @@ function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSki
   if (!(typeof input === 'object' && 'diff' in input && typeof input.diff === 'function')) opts.skip();
 
   return transform((input as any).diff(output, ptr, opts), 'minify');
+}
+
+/**
+ * If an input has a custom equality method
+ */
+function diffCustom(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+  return eqCustom(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
 /**

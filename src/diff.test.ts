@@ -19,6 +19,16 @@ objARecursive.some_key = objARecursive;
 const objBRecursive: { some_other_key: any } = { some_other_key: null };
 objBRecursive.some_other_key = objBRecursive;
 
+class CustomEquality {
+  constructor(readonly val: string) {}
+
+  eq(other: unknown): boolean {
+    return other instanceof CustomEquality && other.val === this.val;
+  }
+}
+const customA = new CustomEquality('a');
+const customB = new CustomEquality('b');
+
 describe('equality', () => {
   test.for(EQUALITY_TESTS)('(%s, %s)', ([a, b], { expect }) => {
     expect(diff(a, b, RootPointer, {})).toEqual([]);
@@ -113,6 +123,7 @@ describe('difference', () => {
         ['+', '/rec/some_other_key', objBRecursive],
       ],
     ],
+    [customA, customB, [['~', '', customB]]],
   ])('(%s, %s)', ([a, b, expected], { expect }) => {
     expect(diff(a, b, RootPointer, {})).toEqual(expected);
   });
