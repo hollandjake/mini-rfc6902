@@ -46,15 +46,15 @@ export type Differ<O extends object = {}> = (
 /**
  * Optional user defined deep equality function
  *
- * @param x - left hand side of the equality comparison
- * @param y - right hand side of the equality comparison
+ * @param a - left hand side of the equality comparison
+ * @param b - right hand side of the equality comparison
  * @param opts - options for custom handling
  *
  * Call `opts.skip()` to allow default handling
  */
 export type EqFunc<O extends object = {}> = (
-  x: Exclude<any, null | undefined>,
-  y: Exclude<any, null | undefined>,
+  a: Exclude<any, null | undefined>,
+  b: Exclude<any, null | undefined>,
   opts: WithSkip<EqOpts> & O,
 ) => boolean;
 

@@ -21,9 +21,76 @@ import {
 
 const defaultDiffers: Differ[] = [diffFunction, diffPrimitive, diffArray, diffWrapper, diffSet, diffMap, diffObject];
 
-export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOpts): Patch {
+/**
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
+ * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
+ * as a full replacement may result in more bytes being sent.
+ *
+ * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
+ * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
+ *
+ * The output will be a {@link Mini.Patch minified patch}
+ *
+ * @param input - The input to compare from
+ * @param output - The output to compare to
+ * @param ptr - Pointer representing the current position relative to the input root
+ */
+export function diff(input: any, output: any, ptr: Pointer): Mini.Patch;
+/**
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
+ * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
+ * as a full replacement may result in more bytes being sent.
+ *
+ * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
+ * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
+ *
+ * The output will be a {@link Mini.Patch minified patch}
+ *
+ * @param input - The input to compare from
+ * @param output - The output to compare to
+ * @param ptr - Pointer representing the current position relative to the input root
+ * @param opts - options for custom handling
+ * @param opts.transform - force the output to all be minified
+ */
+export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'minify' }): Mini.Patch;
+/**
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
+ * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
+ * as a full replacement may result in more bytes being sent.
+ *
+ * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
+ * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
+ *
+ * The output will be a {@link Mini.Patch minified patch}
+ *
+ * @param input - The input to compare from
+ * @param output - The output to compare to
+ * @param ptr - Pointer representing the current position relative to the input root
+ * @param opts - options for custom handling
+ * @param opts.transform - force the output to all be maximised
+ */
+export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'maximize' }): Maxi.Patch;
+/**
+ * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
+ * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
+ * as a full replacement may result in more bytes being sent.
+ *
+ * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
+ * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
+ *
+ * The output will be a {@link Patch} if the user provided {@link Differ} returns a Serialized patch,
+ * it will be converted to a {@link Mini.Patch} and then combined with the other patches
+ *
+ * @param input - The input to compare from
+ * @param output - The output to compare to
+ * @param ptr - Pointer representing the current position relative to the input root
+ * @param opts - Optional options for custom handling
+ */
+export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOpts): Mini.Patch;
+
+export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffOpts): Patch {
   // Are they equal, then return empty diff
-  if (eq(input, output, opts)) return transform([], opts.transform);
+  if (eq(input, output, opts)) return transform([], opts?.transform);
 
   // Handle a xor b nullable
   try {
@@ -35,7 +102,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
         }),
         opts,
       ),
-      opts.transform,
+      opts?.transform,
     );
   } catch (e) {
     if (e !== SKIP) throw e;
@@ -70,7 +137,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
           }),
           opts,
         ),
-        opts.transform,
+        opts?.transform,
       );
     } catch (e) {
       if (e !== SKIP) throw e;
@@ -78,7 +145,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOp
   }
 
   // Still don't know the type so just do a full replacement
-  return transform([['~', ptr, clone(output, opts)]], opts.transform);
+  return transform([['~', ptr, clone(output, opts)]], opts?.transform);
 }
 
 /**
@@ -110,7 +177,7 @@ function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: With
 }
 
 /**
- * Create a Mini.mal operation set to transform array a into b
+ * Create a {@link Mini.Patch} to transform array a into b
  *
  * This is achieved through the use of an Edit Distance algorithm with supported operations:
  * > add

@@ -1,5 +1,7 @@
-import { copyFileSync } from 'node:fs';
+import terser from '@rollup/plugin-terser';
+import { copyFile } from 'node:fs/promises';
 import dts from 'vite-plugin-dts';
+import requireTransform from 'vite-plugin-require-transform';
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
@@ -13,17 +15,37 @@ export default defineConfig({
     minify: false,
     lib: {
       entry: 'src/index.ts',
-      name: 'rfc6902',
-      fileName: 'index',
-      formats: ['es', 'cjs', 'umd'],
+    },
+    rollupOptions: {
+      external: ['bson'],
+      output: [
+        {
+          format: 'es',
+          entryFileNames: 'index.mjs',
+        },
+        {
+          format: 'cjs',
+          entryFileNames: 'index.cjs',
+        },
+        {
+          format: 'umd',
+          entryFileNames: 'index.umd.js',
+          name: 'rfc6902',
+          plugins: [terser()],
+          globals: {
+            bson: 'BSON',
+          },
+        },
+      ],
     },
   },
   plugins: [
+    requireTransform(),
     dts({
       rollupTypes: true,
       exclude: ['**/*.test.ts'],
-      afterBuild: () => {
-        copyFileSync('dist/index.d.ts', 'dist/index.d.mts');
+      async afterBuild() {
+        await copyFile('dist/index.d.mts', 'dist/index.d.cts');
       },
     }),
   ],

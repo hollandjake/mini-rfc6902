@@ -1,14 +1,21 @@
 import { EqFunc, EqOpts, SKIP, skip, WithSkip } from './types';
 
-const defaultEqFunc: EqFunc[] = [eqFunction, eqPrimitive, eqArray, eqWrapper, eqSet, eqMap, eqObject];
+const defaultEqFunc: EqFunc[] = [eqCustom, eqPrimitive, eqWrapper, eqArray, eqSet, eqMap, eqObject];
 
-export function eq(x: any, y: any, opts: EqOpts): boolean {
+/**
+ * Returns whether the two passed arguments are equal
+ *
+ * @param a - left hand side of the equality comparison
+ * @param b - right hand side of the equality comparison
+ * @param opts - options for custom handling
+ */
+export function eq(a: any, b: any, opts?: EqOpts): boolean {
   // Shortcut pointer equality check
-  if (Object.is(x, y)) return true;
+  if (Object.is(a, b)) return true;
 
   // Handle a not instance of b
   try {
-    return eqNullable(x, y, {
+    return eqNullable(a, b, {
       ...opts,
       skip,
     });
@@ -17,9 +24,9 @@ export function eq(x: any, y: any, opts: EqOpts): boolean {
   }
 
   // Run custom
-  if (opts.eq) {
+  if (opts?.eq) {
     try {
-      return opts.eq(x, y, {
+      return opts.eq(a, b, {
         ...opts,
         skip,
       });
@@ -31,7 +38,7 @@ export function eq(x: any, y: any, opts: EqOpts): boolean {
   // Run through default handlers
   for (const eqFunc of defaultEqFunc) {
     try {
-      return eqFunc(x, y, {
+      return eqFunc(a, b, {
         ...opts,
         skip,
       });
@@ -49,153 +56,173 @@ export function eq(x: any, y: any, opts: EqOpts): boolean {
  *
  * This allows all the other functions to not have to deal with nullables
  */
-export function eqNullable(x: unknown, y: unknown, opts: WithSkip<EqOpts>): boolean {
-  if (x === undefined && y === undefined) return true;
-  if (x === undefined && y !== undefined) return false;
-  if (x !== undefined && y === undefined) return false;
+export function eqNullable(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolean {
+  if (a === undefined && b === undefined) return true;
+  if (a === undefined && b !== undefined) return false;
+  if (a !== undefined && b === undefined) return false;
 
-  if (x === null && y === null) return true;
-  if (x === null && y !== null) return false;
-  if (x !== null && y === null) return false;
+  if (a === null && b === null) return true;
+  if (a === null && b !== null) return false;
+  if (a !== null && b === null) return false;
 
   opts.skip();
 }
 
-export function eqFunction(x: unknown, y: unknown, opts: WithSkip<EqOpts>): boolean {
-  if (!!x && typeof x === 'object') {
-    if ('eq' in x && typeof x.eq === 'function') return x.eq(y);
-    if ('isEqual' in x && typeof x.isEqual === 'function') return x.isEqual(y);
-    if ('equal' in x && typeof x.equal === 'function') return x.equal(y);
-    if ('equals' in x && typeof x.equals === 'function') return x.equals(y);
+/**
+ * Check if any equality functions exist and if so use them
+ */
+export function eqCustom(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolean {
+  if (!!a && typeof a === 'object') {
+    if ('eq' in a && typeof a.eq === 'function') return a.eq(b);
+    if ('isEqual' in a && typeof a.isEqual === 'function') return a.isEqual(b);
+    if ('equal' in a && typeof a.equal === 'function') return a.equal(b);
+    if ('equals' in a && typeof a.equals === 'function') return a.equals(b);
   }
 
-  const asymmetricX = !!x && typeof x === 'object' && 'asymmetricMatch' in x && typeof x.asymmetricMatch === 'function';
-  if (asymmetricX) {
-    if ((x.asymmetricMatch as Function)(y)) return true;
+  const asymmetricA = !!a && typeof a === 'object' && 'asymmetricMatch' in a && typeof a.asymmetricMatch === 'function';
+  if (asymmetricA) {
+    if ((a.asymmetricMatch as Function)(b)) return true;
   }
 
-  const asymmetricY = !!y && typeof y === 'object' && 'asymmetricMatch' in y && typeof y.asymmetricMatch === 'function';
-  if (asymmetricY) {
-    if ((y.asymmetricMatch as Function)(x)) return true;
+  const asymmetricB = !!b && typeof b === 'object' && 'asymmetricMatch' in b && typeof b.asymmetricMatch === 'function';
+  if (asymmetricB) {
+    if ((b.asymmetricMatch as Function)(a)) return true;
   }
 
-  if (!asymmetricX && !asymmetricY) opts.skip();
+  if (!asymmetricA && !asymmetricB) opts.skip();
   return false;
 }
 
-export function eqPrimitive(x: unknown, y: unknown, opts: WithSkip<EqOpts>): boolean {
-  if (typeof x !== typeof y) return false;
+/**
+ * Check equality of js primitives
+ */
+export function eqPrimitive(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolean {
+  if (typeof a !== typeof b) return false;
 
   // Objects are handled separately
-  if (typeof x === 'object') opts.skip();
+  if (typeof a === 'object') opts.skip();
 
-  return Object.is(x, y);
+  return Object.is(a, b);
 }
-
-export function eqArray(x: unknown, y: unknown, opts: WithSkip<EqOpts>): boolean {
-  if (!Array.isArray(x) && !Array.isArray(y)) opts.skip();
-  if (Array.isArray(x) && Array.isArray(y)) {
-    return x.length === y.length && x.every((v: any, k: number) => eq(v, y[k], opts));
+/**
+ * Check equality of js array
+ */
+export function eqArray(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolean {
+  if (!Array.isArray(a) && !Array.isArray(b)) opts.skip();
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((v: any, k: number) => eq(v, b[k], opts));
   }
   return false;
 }
 
-export function eqWrapper(x: object, y: object, opts: WithSkip<EqOpts>): boolean {
-  if (x instanceof Error && y instanceof Error) return x.message === y.message;
-  if (x instanceof String && y instanceof String) return x.valueOf() === y.valueOf();
-  if (x instanceof Number && y instanceof Number) return x.valueOf() === y.valueOf();
-  if (x instanceof Boolean && y instanceof Boolean) return x.valueOf() === y.valueOf();
-  if (x instanceof Date && y instanceof Date) return x.getTime() === y.getTime();
-  if (x instanceof RegExp && y instanceof RegExp) return x.source === y.source && x.flags === y.flags;
-  if (x instanceof Int8Array && y instanceof Int8Array) return x.length === y.length && !x.some((v, i) => v !== y[i]);
-  if (x instanceof Int16Array && y instanceof Int16Array) return x.length === y.length && !x.some((v, i) => v !== y[i]);
-  if (x instanceof Int32Array && y instanceof Int32Array) return x.length === y.length && !x.some((v, i) => v !== y[i]);
-  if (x instanceof Uint8Array && y instanceof Uint8Array) return x.length === y.length && !x.some((v, i) => v !== y[i]);
-  if (x instanceof Uint8ClampedArray && y instanceof Uint8ClampedArray) {
-    return x.length === y.length && !x.some((v, i) => v !== y[i]);
+/**
+ * Check equality of js wrappers
+ */
+export function eqWrapper(a: object, b: object, opts: WithSkip<EqOpts>): boolean {
+  if (a instanceof Error && b instanceof Error) return a.message === b.message;
+  if (a instanceof String && b instanceof String) return a.valueOf() === b.valueOf();
+  if (a instanceof Number && b instanceof Number) return a.valueOf() === b.valueOf();
+  if (a instanceof Boolean && b instanceof Boolean) return a.valueOf() === b.valueOf();
+  if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime();
+  if (a instanceof RegExp && b instanceof RegExp) return a.source === b.source && a.flags === b.flags;
+  if (a instanceof Int8Array && b instanceof Int8Array) return a.length === b.length && !a.some((v, i) => v !== b[i]);
+  if (a instanceof Int16Array && b instanceof Int16Array) return a.length === b.length && !a.some((v, i) => v !== b[i]);
+  if (a instanceof Int32Array && b instanceof Int32Array) return a.length === b.length && !a.some((v, i) => v !== b[i]);
+  if (a instanceof Uint8Array && b instanceof Uint8Array) return a.length === b.length && !a.some((v, i) => v !== b[i]);
+  if (a instanceof Uint8ClampedArray && b instanceof Uint8ClampedArray) {
+    return a.length === b.length && !a.some((v, i) => v !== b[i]);
   }
-  if (x instanceof Uint16Array && y instanceof Uint16Array) {
-    return x.length === y.length && !x.some((v, i) => v !== y[i]);
+  if (a instanceof Uint16Array && b instanceof Uint16Array) {
+    return a.length === b.length && !a.some((v, i) => v !== b[i]);
   }
-  if (x instanceof Uint32Array && y instanceof Uint32Array) {
-    return x.length === y.length && !x.some((v, i) => v !== y[i]);
+  if (a instanceof Uint32Array && b instanceof Uint32Array) {
+    return a.length === b.length && !a.some((v, i) => v !== b[i]);
   }
-  if (x instanceof Float32Array && y instanceof Float32Array) {
-    return x.length === y.length && !x.some((v, i) => v !== y[i]);
+  if (a instanceof Float32Array && b instanceof Float32Array) {
+    return a.length === b.length && !a.some((v, i) => v !== b[i]);
   }
-  if (x instanceof Float64Array && y instanceof Float64Array) {
-    return x.length === y.length && !x.some((v, i) => v !== y[i]);
+  if (a instanceof Float64Array && b instanceof Float64Array) {
+    return a.length === b.length && !a.some((v, i) => v !== b[i]);
   }
-  if (x instanceof ArrayBuffer && y instanceof ArrayBuffer) {
-    if (x.byteLength !== y.byteLength) return false;
-    const xTyped = new Int8Array(x);
-    const yTyped = new Int8Array(y);
-    return !xTyped.some((v, i) => v !== yTyped[i]);
+  if (a instanceof ArrayBuffer && b instanceof ArrayBuffer) {
+    if (a.byteLength !== b.byteLength) return false;
+    const aTyped = new Int8Array(a);
+    const bTyped = new Int8Array(b);
+    return !aTyped.some((v, i) => v !== bTyped[i]);
   }
-  if (x instanceof DataView && y instanceof DataView) {
-    if (x.byteLength !== y.byteLength) return false;
-    if (x.byteOffset !== y.byteOffset) return false;
-    const xTyped = new Int8Array(x.buffer);
-    const yTyped = new Int8Array(y.buffer);
-    return !xTyped.some((v, i) => v !== yTyped[i]);
+  if (a instanceof DataView && b instanceof DataView) {
+    if (a.byteLength !== b.byteLength) return false;
+    if (a.byteOffset !== b.byteOffset) return false;
+    const aTyped = new Int8Array(a.buffer);
+    const bTyped = new Int8Array(b.buffer);
+    return !aTyped.some((v, i) => v !== bTyped[i]);
   }
 
   opts.skip();
 }
 
-export function eqSet(x: object, y: object, opts: WithSkip<EqOpts>): boolean {
-  if (x instanceof Set && y instanceof Set) {
-    if (x.size !== y.size) return false;
+/**
+ * Check equality of js Set
+ */
+export function eqSet(a: object, b: object, opts: WithSkip<EqOpts>): boolean {
+  if (!(a instanceof Set) && !(b instanceof Set)) opts.skip();
+  if (a instanceof Set && b instanceof Set) {
+    if (a.size !== b.size) return false;
 
-    const xVals = [...x.values()];
-    const yVals = [...y.values()];
+    const aVals = [...a.values()];
+    const bVals = [...b.values()];
 
-    return xVals.every(xVal => yVals.some(yVal => eq(xVal, yVal, opts)));
+    return aVals.every(aVal => bVals.some(bVal => eq(aVal, bVal, opts)));
   }
-  if (!(x instanceof Set) && !(y instanceof Set)) opts.skip();
   return false;
 }
 
-export function eqMap(x: object, y: object, opts: WithSkip<EqOpts>): boolean {
-  if (x instanceof Map && y instanceof Map) {
-    if (x.size !== y.size) return false;
+/**
+ * Check equality of js Map
+ */
+export function eqMap(a: object, b: object, opts: WithSkip<EqOpts>): boolean {
+  if (!(a instanceof Map) && !(b instanceof Map)) opts.skip();
+  if (a instanceof Map && b instanceof Map) {
+    if (a.size !== b.size) return false;
 
-    return [...x.entries()].every(([k, xVal]) => eq(xVal, y.get(k), opts));
+    return [...a.entries()].every(([k, aVal]) => eq(aVal, b.get(k), opts));
   }
-  if (!(x instanceof Map) && !(y instanceof Map)) opts.skip();
   return false;
 }
 
-const xSeen = Symbol('x-seen');
-const ySeen = Symbol('y-seen');
+const aSeen = Symbol('a-seen');
+const bSeen = Symbol('b-seen');
 
-export function eqObject(x: object, y: object, opts: WithSkip<EqOpts> & { [xSeen]?: any[]; [ySeen]?: any[] }): boolean {
+/**
+ * Check equality of js objects
+ */
+export function eqObject(a: object, b: object, opts: WithSkip<EqOpts> & { [aSeen]?: any[]; [bSeen]?: any[] }): boolean {
   // if they are not the same type we cant compare them
-  if (Object.getPrototypeOf(x) !== Object.getPrototypeOf(y)) opts.skip();
+  if (Object.getPrototypeOf(a) !== Object.getPrototypeOf(b)) opts.skip();
 
-  let length = opts[xSeen]?.length ?? 0;
-  while (opts[xSeen] && opts[ySeen] && length--) {
-    if (opts[xSeen][length] === x) return opts[ySeen][length] === y;
-    else if (opts[ySeen][length] === y) return false;
+  let length = opts[aSeen]?.length ?? 0;
+  while (opts[aSeen] && opts[bSeen] && length--) {
+    if (opts[aSeen][length] === a) return opts[bSeen][length] === b;
+    else if (opts[bSeen][length] === b) return false;
   }
 
-  if (!opts[xSeen]) opts[xSeen] = [];
-  opts[xSeen].push(x);
-  if (!opts[ySeen]) opts[ySeen] = [];
-  opts[ySeen].push(y);
+  if (!opts[aSeen]) opts[aSeen] = [];
+  opts[aSeen].push(a);
+  if (!opts[bSeen]) opts[bSeen] = [];
+  opts[bSeen].push(b);
 
   let res = true;
-  const xKeys = Object.keys(x);
-  if (!eq(new Set(xKeys), new Set(Object.keys(y)), opts)) res = false;
-  if (res && xKeys.some(k => !eq(x[k as never], y[k as never], opts))) res = false;
+  const aKeys = Object.keys(a);
+  if (!eq(new Set(aKeys), new Set(Object.keys(b)), opts)) res = false;
+  if (res && aKeys.some(k => !eq(a[k as never], b[k as never], opts))) res = false;
 
   if (res) {
-    const xSymbols = Object.getOwnPropertySymbols(x);
-    if (!eq(new Set(xSymbols), new Set(Object.getOwnPropertySymbols(y)), opts)) res = false;
-    if (xSymbols.some(k => !eq(x[k as never], y[k as never], opts))) res = false;
+    const aSymbols = Object.getOwnPropertySymbols(a);
+    if (!eq(new Set(aSymbols), new Set(Object.getOwnPropertySymbols(b)), opts)) res = false;
+    if (aSymbols.some(k => !eq(a[k as never], b[k as never], opts))) res = false;
   }
 
-  opts[xSeen].pop();
-  opts[ySeen].pop();
+  opts[aSeen].pop();
+  opts[bSeen].pop();
   return res;
 }

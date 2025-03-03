@@ -11,12 +11,12 @@ import { CreateOpts } from './utils';
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
- * The output will be a {@link Patch full size patch}
+ * The output will be a {@link Mini.Patch minified patch}
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
  */
-export function create(input: any, output: any): Patch | null;
+export function create(input: any, output: any): Mini.Patch | null;
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
@@ -57,6 +57,8 @@ export function create(input: any, output: any, opts: CreateOpts & { transform: 
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
+ * The output will be a {@link Patch}
+ *
  * @param input - The input to compare from
  * @param output - The output to compare to
  * @param opts - Optional options for custom handling
@@ -69,6 +71,8 @@ export function create(input: any, output: any, opts: CreateOpts): Patch | null;
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
+ *
+ * The output will be a {@link Patch}
  *
  * @param input - The input to compare from
  * @param output - The output to compare to

@@ -6,8 +6,9 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "declarationMap": false,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true
   },
   "extends": "./node_modules/gts/tsconfig-google.json",
-  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "vite.config.ts", "vitest.config.ts"]
 }

@@ -12,7 +12,7 @@ const defaultCloners: Cloner[] = [
 
 const refs = Symbol('refs');
 
-export function clone<T>(val: T, opts: CloneOpts & { [refs]?: Map<any, any> }): T {
+export function clone<T>(val: T, opts?: CloneOpts & { [refs]?: Map<any, any> }): T {
   // Run custom
   if (opts?.clone) {
     try {

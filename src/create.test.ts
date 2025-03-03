@@ -1,6 +1,9 @@
 import { describe, test } from 'vitest';
 import { apply } from './apply';
 import { create } from './create';
+import { Patch } from './patch';
+import { Pointer } from './pointer';
+import { Diffable, DiffOpts, WithSkip } from './utils';
 
 const undefinedA = undefined;
 const undefinedB = undefined;

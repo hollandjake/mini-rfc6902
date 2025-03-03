@@ -81,7 +81,11 @@ function isPointerable(x: unknown): x is Pointer | string {
   if (typeof x === 'string') return true;
   if (x instanceof Pointer) return true;
   if (x instanceof Uint8Array) return true;
-  return typeof x === 'object' && 'buffer' in x && x['buffer'] instanceof Uint8Array;
+  if (typeof x === 'object') {
+    if ('buffer' in x && x['buffer'] instanceof Uint8Array) return true;
+    else if ('tokens' in x && Array.isArray(x['tokens'])) return true;
+  }
+  return false;
 }
 
 function isMinified(op: Op): op is Mini.Op {

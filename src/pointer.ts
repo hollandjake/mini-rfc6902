@@ -2,15 +2,25 @@ import { MissingError, PointerError } from './error';
 
 type Token = string | number | { toString: () => string };
 
+/**
+ * RFC-6901 complaint pointer
+ *
+ * Identifies a specific value within a JavaScript Object Notation (JSON) document.
+ *
+ * @see https://datatracker.ietf.org/doc/html/rfc6901
+ */
 export class Pointer {
   constructor(readonly tokens: Token[]) {}
 
   public static from(str: Pointer | string | Uint8Array | ArrayBuffer) {
     if (str instanceof Pointer) return str;
-
-    if (typeof str === 'object' && 'buffer' in str && str['buffer'] instanceof Uint8Array) str = str.buffer;
-    if (str instanceof Uint8Array || str instanceof ArrayBuffer) str = new TextDecoder().decode(str);
-
+    if (str) {
+      if (typeof str === 'object') {
+        if ('buffer' in str && str['buffer'] instanceof Uint8Array) str = str.buffer;
+        else if ('tokens' in str && Array.isArray(str['tokens'])) return new Pointer(str['tokens']);
+      }
+      if (str instanceof Uint8Array || str instanceof ArrayBuffer) str = new TextDecoder().decode(str);
+    }
     if (typeof str !== 'string') throw new PointerError(`Invalid pointer '${str}'`);
 
     const [, ...tokens] = str.split('/');
@@ -132,7 +142,7 @@ export class Pointer {
 
   public asymmetricMatch(other: unknown) {
     const o = Pointer.from(other as never);
-    return this.tokens.length === o.tokens.length && this.tokens.every((t, i) => o.tokens[i] === String(t));
+    return this.tokens.length === o.tokens.length && this.tokens.every((t, i) => String(o.tokens[i]) === String(t));
   }
 }
 
