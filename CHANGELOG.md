@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.1](https://github.com/hollandjake/mini-rfc6902/compare/v0.4.0...v0.4.1) (2025-03-03)
+
+
+### Bug Fixes
+
+* diff now respects custom equality methods ([a65fe63](https://github.com/hollandjake/mini-rfc6902/commit/a65fe6391a257104080665c3a1f2579bf5a4e69c))
+* update typings ([ef3c8a6](https://github.com/hollandjake/mini-rfc6902/commit/ef3c8a64327263b36c74340a42790effd1c55fc0))
+
 ## [0.4.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.3.0...v0.4.0) (2025-02-28)
 
 
