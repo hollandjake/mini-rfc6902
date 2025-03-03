@@ -1,6 +1,7 @@
 import { describe, test } from 'vitest';
 import { apply } from './apply';
 import { create } from './create';
+import { UnserializableError } from './error';
 import { Patch } from './patch';
 import { Pointer } from './pointer';
 import { Diffable, DiffOpts, WithSkip } from './utils';
@@ -65,7 +66,7 @@ const metaB = {
 };
 
 describe('create', () => {
-  const suite = [
+  const serializableSuite = [
     [undefined, null],
     [null, undefined],
     [true, false],
@@ -75,8 +76,6 @@ describe('create', () => {
     [-0, +0],
     ['', 'a'],
     ['a', 'b'],
-    [funcA, funcAClone],
-    [funcA, funcB],
     [{ a: 'a' }, { a: 'b' }],
     [{ a: 'a' }, { a: { b: 'c' } }],
     [{ a: { b: 'c' } }, { a: { b: 'd' } }],
@@ -85,8 +84,6 @@ describe('create', () => {
       { a: 'b', b: 'a' },
     ],
     [{}, { a: 'b' }],
-    [symbolA, symbolAClone],
-    [symbolA, symbolB],
     [[], [1, 2, 3]],
     [
       [1, 2],
@@ -103,21 +100,8 @@ describe('create', () => {
     ],
     [[objA], [objA, objA]],
     [new Date(0), new Date(1)],
-    [new Error('some error'), new Error('some other error')],
-    [new String('test'), new String('t')],
-    [new Number(1), new Number(2)],
-    [new Boolean(true), new Boolean(false)],
     [new RegExp('a', 'g'), new RegExp('b', 'g')],
-    [new RegExp('a', 'g'), new RegExp('a', 'y')],
-    [new Uint8Array([1, 2, 3]), new Uint8Array([3, 2, 1])],
-    [new Uint16Array([1, 2, 3]), new Uint16Array([3, 2, 1])],
-    [new Uint32Array([1, 2, 3]), new Uint32Array([3, 2, 1])],
-    [new Float32Array([1, 2, 3]), new Float32Array([3, 2, 1])],
-    [new Float64Array([1, 2, 3]), new Float64Array([3, 2, 1])],
-    [new Int32Array([1, 2, 3]).buffer, new Int32Array([3, 2, 1]).buffer],
-    [new DataView(new Int32Array([1, 2, 3]).buffer), new DataView(new Int32Array([3, 2, 1]).buffer)],
-    // We are unable to determine where in a set we want to delete from (as its unordered) so we need to do a full replacement
-    [new Set([1, 2, 3]), new Set([1, 2])],
+    [new RegExp('a', 'g'), new RegExp('a', 'i')],
     [
       new Map([
         ['a', 1],
@@ -130,8 +114,30 @@ describe('create', () => {
       ]),
     ],
     [nonStringKeyedObjectA, nonStringKeyedObjectB],
+  ];
+  const nonSerializableSuite = [
+    [funcA, funcAClone],
+    [funcA, funcB],
+    [symbolA, symbolAClone],
+    [symbolA, symbolB],
+    [new Error('some error'), new Error('some other error')],
+    [new String('test'), new String('t')],
+    [new Number(1), new Number(2)],
+    [new Boolean(true), new Boolean(false)],
+    // Note the y flag is not serializable as it's not part of the BSON spec
+    [new RegExp('a', 'g'), new RegExp('a', 'y')],
+    [new Uint8Array([1, 2, 3]), new Uint8Array([3, 2, 1])],
+    [new Uint16Array([1, 2, 3]), new Uint16Array([3, 2, 1])],
+    [new Uint32Array([1, 2, 3]), new Uint32Array([3, 2, 1])],
+    [new Float32Array([1, 2, 3]), new Float32Array([3, 2, 1])],
+    [new Float64Array([1, 2, 3]), new Float64Array([3, 2, 1])],
+    [new Int32Array([1, 2, 3]).buffer, new Int32Array([3, 2, 1]).buffer],
+    [new DataView(new Int32Array([1, 2, 3]).buffer), new DataView(new Int32Array([3, 2, 1]).buffer)],
+    // We are unable to determine where in a set we want to delete from (as its unordered) so we need to do a full replacement
+    [new Set([1, 2, 3]), new Set([1, 2])],
     [metaA, metaB],
   ];
+  const suite = [...serializableSuite, ...nonSerializableSuite];
 
   describe('default', () => {
     test.for(suite)('(%s, %s)', ([a, b], { expect }) => {
@@ -154,6 +160,17 @@ describe('create', () => {
       const patch = create(a, b, { transform: 'minify' });
       expect(patch).not.toEqual(null);
       expect(apply(a, patch)).toEqual(b);
+    });
+  });
+
+  describe('binary', () => {
+    test.for(serializableSuite)('(%s, %s)', ([a, b], { expect }) => {
+      const patch = create(a, b, { transform: 'serialize' });
+      expect(patch).not.toEqual(null);
+      expect(apply(a, patch)).toEqual(b);
+    });
+    test.for(nonSerializableSuite)('(%s, %s)', ([a, b], { expect }) => {
+      expect(() => create(a, b, { transform: 'serialize' })).toThrow(UnserializableError);
     });
   });
 

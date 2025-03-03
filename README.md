@@ -90,8 +90,10 @@ calling the `opts.skip()` method from within this definition will allow the defa
 
 #### `opts.transform`
 
-Configure whether to transform the output patch into `minify` or `maximize`, by default all inbuilt operations
-return minified patches, but user defined diffs may not
+Configure whether to transform the output patch into `minify`, `maximize` or `serialize`, by default all inbuilt operations
+return minified patches, but user defined diffs may not.
+
+If the user wishes to use `serialize`, the optional `bson` dependency is required for both serialize and deserialize
 
 </details>
 
@@ -123,8 +125,10 @@ calling the `opts.skip()` method from within this definition will allow the defa
 
 #### `opts.transform`
 
-Configure whether to transform the output patch into `minify` or `maximize`, by default all inbuilt operations
-return minified patches, but user defined diffs may not
+Configure whether to transform the output patch into `minify`, `maximize` or `serialize`, by default all inbuilt operations
+return minified patches, but user defined diffs may not.
+
+If the user wishes to use `serialize`, the optional `bson` dependency is required for both serialize and deserialize
 
 </details>
 

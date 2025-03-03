@@ -1,5 +1,7 @@
-import { InvalidOperationError, InvalidPatchError } from './error';
+import { InvalidOperationError, InvalidPatchError, UnserializableError } from './error';
 import { Pointer } from './pointer';
+import { eq } from './utils';
+import { deserializeBSON, serializeBSON } from './utils/bson';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Mini {
@@ -26,9 +28,10 @@ export namespace Maxi {
 }
 
 export type Op = Mini.Op | Maxi.Op;
-export type Patch = Op[];
+export type Patch = Op[] | Uint8Array;
 
 export function minify(patch: Patch): Mini.Patch {
+  if (patch instanceof Uint8Array) return deserialize(patch);
   if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(minifyOp);
 }
@@ -53,6 +56,7 @@ export function minifyOp(op: Op): Mini.Op {
 }
 
 export function maximize(patch: Patch): Maxi.Patch {
+  if (patch instanceof Uint8Array) patch = deserialize(patch);
   if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(maximizeOp);
 }
@@ -76,7 +80,46 @@ export function maximizeOp(op: Op): Maxi.Op {
   }
 }
 
-function isPointerable(x: unknown): x is Pointer | string {
+export function serialize(patch: Patch): Uint8Array {
+  if (patch instanceof Uint8Array) return patch;
+  patch = minify(patch);
+
+  const result = serializeBSON(Object.assign({}, patch));
+
+  // Check that the serialized result can be deserialized into the original patch
+  // this ensures there was no non-serializable data in the patch
+  if (!eq(deserialize(result), patch, {})) throw new UnserializableError('Non-serializable patch');
+  return result;
+}
+
+export function deserialize(patch: Uint8Array): Mini.Patch {
+  const deserializedPatch: Mini.Patch = [];
+
+  const dp = deserializeBSON(patch);
+
+  for (const k in dp) {
+    let op = dp[k];
+    switch (op[0]) {
+      case '-':
+        op = [op[0], Pointer.from(op[1])];
+        break;
+      case '+':
+      case '~':
+      case '?':
+        op = [op[0], Pointer.from(op[1]), op[2]];
+        break;
+      case '>':
+      case '^':
+        op = [op[0], Pointer.from(op[1]), Pointer.from(op[2])];
+        break;
+    }
+    deserializedPatch[Number(k)] = op;
+  }
+
+  return deserializedPatch;
+}
+
+function isPointerable(x: unknown): x is typeof Pointer | string {
   if (x === null || x === undefined) return false;
   if (typeof x === 'string') return true;
   if (x instanceof Pointer) return true;
