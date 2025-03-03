@@ -1,6 +1,6 @@
 {
   "name": "mini-rfc6902",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "TypeScript implementation of RFC6902 with mini-rfc6902 format support",
   "license": "MIT",
   "author": "Jake Holland",

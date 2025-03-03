@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.4.1...v0.5.0) (2025-03-03)
+
+
+### Features
+
+* add support for binary format ([#16](https://github.com/hollandjake/mini-rfc6902/issues/16)) ([45f526f](https://github.com/hollandjake/mini-rfc6902/commit/45f526f6e16427451b1461e25a2f4a065c962a6c))
+
 ## [0.4.1](https://github.com/hollandjake/mini-rfc6902/compare/v0.4.0...v0.4.1) (2025-03-03)
 
 
