@@ -31,7 +31,7 @@ export default defineConfig({
           format: 'umd',
           entryFileNames: 'index.umd.js',
           name: 'rfc6902',
-          plugins: [terser()],
+          plugins: [terser({ keep_classnames: true })],
           globals: {
             bson: 'BSON',
           },
@@ -45,7 +45,7 @@ export default defineConfig({
       rollupTypes: true,
       exclude: ['**/*.test.ts'],
       async afterBuild() {
-        await copyFile('dist/index.d.mts', 'dist/index.d.cts');
+        await copyFile('dist/index.d.cts', 'dist/index.d.mts');
       },
     }),
   ],
