@@ -1,6 +1,6 @@
 import { InvalidOperationError, InvalidPatchError, UnserializableError } from './error';
 import { Pointer } from './pointer';
-import { eq } from './utils';
+import { eq, getInt32LE } from './utils';
 import { deserializeBSON, serializeBSON } from './utils/bson';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -27,10 +27,19 @@ export namespace Maxi {
   export type Patch = Op[];
 }
 
-export type Op = Mini.Op | Maxi.Op;
-export type Patch = Op[] | Uint8Array;
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace Serial {
+  export type Op = Uint8Array;
+  export type Patch = Uint8Array;
+}
 
-export function minify(patch: Patch): Mini.Patch {
+export type Op = Mini.Op | Maxi.Op | Serial.Op;
+export type MaxiPatch = Maxi.Patch;
+export type MiniPatch = Mini.Patch;
+export type SerialPatch = Serial.Patch;
+export type Patch = Op[] | SerialPatch;
+
+export function minify(patch: Patch): MiniPatch {
   if (patch instanceof Uint8Array) return deserialize(patch);
   if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(minifyOp);
@@ -38,85 +47,97 @@ export function minify(patch: Patch): Mini.Patch {
 
 export function minifyOp(op: Op): Mini.Op {
   if (isMinified(op)) return op;
+  if (op instanceof Uint8Array) return deserializeOp(op);
   if (!isMaximised(op)) throw new InvalidOperationError(op);
   switch (op.op) {
     case 'add':
-      return ['+', op.path, op.value];
+      return ['+', Pointer.from(op.path), op.value];
     case 'remove':
-      return ['-', op.path];
+      return ['-', Pointer.from(op.path)];
     case 'replace':
-      return ['~', op.path, op.value];
+      return ['~', Pointer.from(op.path), op.value];
     case 'move':
-      return ['>', op.from, op.path];
+      return ['>', Pointer.from(op.from), Pointer.from(op.path)];
     case 'copy':
-      return ['^', op.from, op.path];
+      return ['^', Pointer.from(op.from), Pointer.from(op.path)];
     case 'test':
-      return ['?', op.path, op.value];
+      return ['?', Pointer.from(op.path), op.value];
   }
 }
 
-export function maximize(patch: Patch): Maxi.Patch {
+export function maximize(patch: Patch): MaxiPatch {
   if (patch instanceof Uint8Array) patch = deserialize(patch);
-  if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
+  else if (!Array.isArray(patch)) throw new InvalidPatchError(patch);
   return patch.map(maximizeOp);
 }
 
 export function maximizeOp(op: Op): Maxi.Op {
   if (isMaximised(op)) return op;
+  if (op instanceof Uint8Array) op = deserializeOp(op);
   if (!isMinified(op)) throw new InvalidOperationError(op);
   switch (op[0]) {
     case '+':
-      return { op: 'add', path: op[1], value: op[2] };
+      return { op: 'add', path: Pointer.from(op[1]), value: op[2] };
     case '-':
-      return { op: 'remove', path: op[1] };
+      return { op: 'remove', path: Pointer.from(op[1]) };
     case '~':
-      return { op: 'replace', path: op[1], value: op[2] };
+      return { op: 'replace', path: Pointer.from(op[1]), value: op[2] };
     case '>':
-      return { op: 'move', from: op[1], path: op[2] };
+      return { op: 'move', from: Pointer.from(op[1]), path: Pointer.from(op[2]) };
     case '^':
-      return { op: 'copy', from: op[1], path: op[2] };
+      return { op: 'copy', from: Pointer.from(op[1]), path: Pointer.from(op[2]) };
     case '?':
-      return { op: 'test', path: op[1], value: op[2] };
+      return { op: 'test', path: Pointer.from(op[1]), value: op[2] };
   }
 }
 
-export function serialize(patch: Patch): Uint8Array {
-  if (patch instanceof Uint8Array) return patch;
+export function serialize(patch: Patch): SerialPatch {
+  if (patch instanceof Uint8Array) {
+    try {
+      // Validate serial patch
+      deserialize(patch);
+      return patch;
+    } catch (e) {
+      if (e instanceof ReferenceError) throw e;
+      throw new UnserializableError(`Non-serializable patch: '${JSON.stringify(patch)}'`);
+    }
+  }
   patch = minify(patch);
 
-  const result = serializeBSON(Object.assign({}, patch));
+  return Buffer.concat(patch.map(serializeOp));
+}
+
+export function serializeOp(op: Op): Serial.Op {
+  const result = serializeBSON(Object.assign({}, op));
 
   // Check that the serialized result can be deserialized into the original patch
   // this ensures there was no non-serializable data in the patch
-  if (!eq(deserialize(result), patch, {})) throw new UnserializableError('Non-serializable patch');
-  return result;
+  try {
+    if (eq(deserializeOp(result), op, {})) return result;
+  } catch (e) {
+    if (!(e instanceof InvalidOperationError)) throw e;
+  }
+  throw new UnserializableError(`Non-serializable op: '${JSON.stringify(op)}'`);
 }
 
-export function deserialize(patch: Uint8Array): Mini.Patch {
-  const deserializedPatch: Mini.Patch = [];
-
-  const dp = deserializeBSON(patch);
-
-  for (const k in dp) {
-    let op = dp[k];
-    switch (op[0]) {
-      case '-':
-        op = [op[0], Pointer.from(op[1])];
-        break;
-      case '+':
-      case '~':
-      case '?':
-        op = [op[0], Pointer.from(op[1]), op[2]];
-        break;
-      case '>':
-      case '^':
-        op = [op[0], Pointer.from(op[1]), Pointer.from(op[2])];
-        break;
-    }
-    deserializedPatch[Number(k)] = op;
+export function deserialize(patch: SerialPatch): MiniPatch {
+  const deserializedPatch: MiniPatch = [];
+  for (let i = 0; i < patch.length; ) {
+    const length = getInt32LE(patch, i);
+    const op = deserializeOp(patch.subarray(i, i + length));
+    deserializedPatch.push(op);
+    i += length;
   }
 
   return deserializedPatch;
+}
+
+function deserializeOp(op: Serial.Op): Mini.Op {
+  const obj = deserializeBSON(op);
+  const arr = [];
+  for (const k in obj) arr[Number(k)] = obj[k];
+  if (!isMinified(arr as never)) throw new InvalidOperationError(arr as never);
+  return minifyOp(arr as never);
 }
 
 function isPointerable(x: unknown): x is typeof Pointer | string {

@@ -1,12 +1,13 @@
 import { Op } from './patch';
+import { Pointer } from './pointer';
 
 export class PointerError extends Error {}
 
 export class MissingError extends Error {
   name = 'MissingError';
 
-  constructor(public ptr: { toString: () => string }) {
-    super(`Value required at path: '${ptr.toString()}'`);
+  constructor(public ptr: Pointer) {
+    super(`Value required at path: '${ptr}'`);
   }
 }
 

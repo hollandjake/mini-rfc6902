@@ -13,6 +13,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/baz', value: 'qux' }]],
       ['Mini + Pointer', [['+', Pointer.from('/baz'), 'qux']]],
       ['Mini + String', [['+', '/baz', 'qux']]],
+      ['Serial', Buffer.from('JQAAAAIwAAIAAAArAAIxAAUAAAAvYmF6AAIyAAQAAABxdXgAAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
       expect(apply(a, patch)).toEqual({ foo: 'bar', baz: 'qux' });
@@ -25,6 +26,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/foo/1', value: 'qux' }]],
       ['Mini + Pointer', [['+', Pointer.from('/foo/1'), 'qux']]],
       ['Mini + String', [['+', '/foo/1', 'qux']]],
+      ['Serial', Buffer.from('JwAAAAIwAAIAAAArAAIxAAcAAAAvZm9vLzEAAjIABAAAAHF1eAAA', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: ['bar', 'baz'] };
       expect(apply(a, patch)).toEqual({ foo: ['bar', 'qux', 'baz'] });
@@ -37,6 +39,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'remove', path: '/baz' }]],
       ['Mini + Pointer', [['-', Pointer.from('/baz')]]],
       ['Mini + String', [['-', '/baz']]],
+      ['Serial', Buffer.from('GgAAAAIwAAIAAAAtAAIxAAUAAAAvYmF6AAA=', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { baz: 'qux', foo: 'bar' };
       expect(apply(a, patch)).toEqual({ foo: 'bar' });
@@ -49,6 +52,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'remove', path: '/foo/1' }]],
       ['Mini + Pointer', [['-', Pointer.from('/foo/1')]]],
       ['Mini + String', [['-', '/foo/1']]],
+      ['Serial', Buffer.from('HAAAAAIwAAIAAAAtAAIxAAcAAAAvZm9vLzEAAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: ['bar', 'qux', 'baz'] };
       expect(apply(a, patch)).toEqual({ foo: ['bar', 'baz'] });
@@ -61,6 +65,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'replace', path: '/baz', value: 'boo' }]],
       ['Mini + Pointer', [['~', Pointer.from('/baz'), 'boo']]],
       ['Mini + String', [['~', '/baz', 'boo']]],
+      ['Serial', Buffer.from('JQAAAAIwAAIAAAB+AAIxAAUAAAAvYmF6AAIyAAQAAABib28AAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { baz: 'qux', foo: 'bar' };
       expect(apply(a, patch)).toEqual({ baz: 'boo', foo: 'bar' });
@@ -73,6 +78,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'move', from: '/foo/waldo', path: '/qux/thud' }]],
       ['Mini + Pointer', [['>', Pointer.from('/foo/waldo'), Pointer.from('/qux/thud')]]],
       ['Mini + String', [['>', '/foo/waldo', '/qux/thud']]],
+      ['Serial', Buffer.from('MQAAAAIwAAIAAAA+AAIxAAsAAAAvZm9vL3dhbGRvAAIyAAoAAAAvcXV4L3RodWQAAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: { bar: 'baz', waldo: 'fred' }, qux: { corge: 'grault' } };
       expect(apply(a, patch)).toEqual({ foo: { bar: 'baz' }, qux: { corge: 'grault', thud: 'fred' } });
@@ -85,6 +91,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'move', from: '/foo/1', path: '/foo/3' }]],
       ['Mini + Pointer', [['>', Pointer.from('/foo/1'), Pointer.from('/foo/3')]]],
       ['Mini + String', [['>', '/foo/1', '/foo/3']]],
+      ['Serial', Buffer.from('KgAAAAIwAAIAAAA+AAIxAAcAAAAvZm9vLzEAAjIABwAAAC9mb28vMwAA', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: ['all', 'grass', 'cows', 'eat'] };
       expect(apply(a, patch)).toEqual({ foo: ['all', 'cows', 'eat', 'grass'] });
@@ -121,6 +128,13 @@ describe('Spec Compliance', () => {
           ['?', '/foo/1', 2],
         ],
       ],
+      [
+        'Serial',
+        Buffer.from(
+          'JQAAAAIwAAIAAAA/AAIxAAUAAAAvYmF6AAIyAAQAAABxdXgAACMAAAACMAACAAAAPwACMQAHAAAAL2Zvby8xABAyAAIAAAAA',
+          'base64',
+        ),
+      ],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { baz: 'qux', foo: ['a', 2, 'c'] };
       expect(() => apply(a, patch)).not.toThrow();
@@ -133,6 +147,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'test', from: '/baz', value: 'bar' }]],
       ['Mini + Pointer', [['?', Pointer.from('/baz'), 'bar']]],
       ['Mini + String', [['?', '/baz', 'bar']]],
+      ['Serial', Buffer.from('JQAAAAIwAAIAAAA/AAIxAAUAAAAvYmF6AAIyAAQAAABiYXIAAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { baz: 'qux' };
       expect(() => apply(a, patch)).toThrow();
@@ -145,6 +160,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/child', value: { grandchild: {} } }]],
       ['Mini + Pointer', [['+', Pointer.from('/child'), { grandchild: {} }]]],
       ['Mini + String', [['+', '/child', { grandchild: {} }]]],
+      ['Serial', Buffer.from('NQAAAAIwAAIAAAArAAIxAAcAAAAvY2hpbGQAAzIAFgAAAANncmFuZGNoaWxkAAUAAAAAAAA=', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
       expect(apply(a, patch)).toEqual({ foo: 'bar', child: { grandchild: {} } });
@@ -157,6 +173,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/baz', value: 'qux', xyz: 123 } as never]],
       ['Mini + Pointer', [['+', Pointer.from('/baz'), 'qux', 123] as never]],
       ['Mini + String', [['+', '/baz', 'qux', 123] as never]],
+      ['Serial', Buffer.from('LAAAAAIwAAIAAAArAAIxAAUAAAAvYmF6AAIyAAQAAABxdXgAEDMAewAAAAA=', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
       expect(apply(a, patch)).toEqual({ foo: 'bar', baz: 'qux' });
@@ -169,8 +186,10 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/baz/bat', value: 'qux' }]],
       ['Mini + Pointer', [['+', Pointer.from('/baz/bat'), 'qux']]],
       ['Mini + String', [['+', '/baz/bat', 'qux']]],
+      ['Serial', Buffer.from('KQAAAAIwAAIAAAArAAIxAAkAAAAvYmF6L2JhdAACMgAEAAAAcXV4AAA=', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
+
       expect(() => apply(a, patch)).toThrow();
       expect(a).toEqual({ foo: 'bar' });
     });
@@ -181,6 +200,8 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'INVALID', path: '/baz', value: 'qux' } as never]],
       ['Mini + Pointer', [['INVALID', Pointer.from('/baz'), 'qux'] as never]],
       ['Mini + String', [['INVALID', '/baz', 'qux'] as never]],
+      ['Serial + Structured', Buffer.from('KwAAAAIwAAgAAABJTlZBTElEAAIxAAUAAAAvYmF6AAIyAAQAAABxdXgAAA==', 'base64')],
+      ['Serial + Random', Buffer.from('rO1VnS+aI4Kw/64n/fVc/Q==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
       expect(() => apply(a, patch)).toThrow();
@@ -193,6 +214,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'test', path: '/~01', value: 10 }]],
       ['Mini + Pointer', [['?', Pointer.from('/~01'), 10]]],
       ['Mini + String', [['?', '/~01', 10]]],
+      ['Serial', Buffer.from('IQAAAAIwAAIAAAA/AAIxAAUAAAAvfjAxABAyAAoAAAAA', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { '/': 9, '~1': 10 };
       expect(() => apply(a, patch)).not.toThrow();
@@ -205,6 +227,7 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'test', path: '/~01', value: '10' }]],
       ['Mini + Pointer', [['?', Pointer.from('/~01'), '10']]],
       ['Mini + String', [['?', '/~01', '10']]],
+      ['Serial', Buffer.from('JAAAAAIwAAIAAAA/AAIxAAUAAAAvfjAxAAIyAAMAAAAxMAAA', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { '/': 9, '~1': 10 };
       expect(() => apply(a, patch)).toThrow();
@@ -217,6 +240,10 @@ describe('Spec Compliance', () => {
       ['Maxi + String', [{ op: 'add', path: '/foo/-', value: ['abc', 'def'] }]],
       ['Mini + Pointer', [['+', Pointer.from('/foo/-'), ['abc', 'def']]]],
       ['Mini + String', [['+', '/foo/-', ['abc', 'def']]]],
+      [
+        'Serial',
+        Buffer.from('OgAAAAIwAAIAAAArAAIxAAcAAAAvZm9vLy0ABDIAGwAAAAIwAAQAAABhYmMAAjEABAAAAGRlZgAAAA==', 'base64'),
+      ],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: ['bar'] };
       expect(apply(a, patch)).toEqual({ foo: ['bar', ['abc', 'def']] });
