@@ -27,8 +27,7 @@
   },
   "unpkg": "./dist/index.umd.js",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "vite build",
@@ -40,7 +39,7 @@
     "test:watch": "vitest",
     "validate": "attw --pack"
   },
-  "types": "./dist/index.d.mts",
+  "types": "./dist/index.d.cts",
   "peerDependencies": {
     "bson": "*"
   },
