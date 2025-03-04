@@ -1,4 +1,4 @@
-import { Maxi, maximizeOp, Mini, minifyOp, Op, Patch } from './patch';
+import { maximizeOp, MaxiPatch, Mini, minifyOp, MiniPatch, Op, Patch, SerialPatch } from './patch';
 import { Pointer } from './pointer';
 import {
   clone,
@@ -39,13 +39,14 @@ const defaultDiffers: Differ[] = [
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
- * The output will be a {@link Mini.Patch minified patch}
+ * The output will be a {@link MiniPatch} if the user provided {@link Differ} returns a Serialized patch,
+ * it will be converted to a {@link MiniPatch} and then combined with the other patches
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
  * @param ptr - Pointer representing the current position relative to the input root
  */
-export function diff(input: any, output: any, ptr: Pointer): Mini.Patch;
+export function diff(input: any, output: any, ptr: Pointer): MiniPatch;
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
@@ -54,7 +55,8 @@ export function diff(input: any, output: any, ptr: Pointer): Mini.Patch;
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
- * The output will be a {@link Mini.Patch minified patch}
+ * The output will be a {@link MiniPatch} if the user provided {@link Differ} returns a Serialized patch,
+ * it will be converted to a {@link MiniPatch} and then combined with the other patches
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
@@ -62,7 +64,7 @@ export function diff(input: any, output: any, ptr: Pointer): Mini.Patch;
  * @param opts - options for custom handling
  * @param opts.transform - force the output to all be minified
  */
-export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'minify' }): Mini.Patch;
+export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'minify' }): MiniPatch;
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
@@ -71,7 +73,8 @@ export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { t
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
- * The output will be a {@link Mini.Patch minified patch}
+ * The output will be a {@link MiniPatch} if the user provided {@link Differ} returns a Serialized patch,
+ * it will be converted to a {@link MiniPatch} and then combined with the other patches
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
@@ -79,7 +82,7 @@ export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { t
  * @param opts - options for custom handling
  * @param opts.transform - force the output to all be maximised
  */
-export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'maximize' }): Maxi.Patch;
+export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { transform: 'maximize' }): MaxiPatch;
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
@@ -88,7 +91,8 @@ export function diff(input: any, output: any, ptr: Pointer, opts: DiffOpts & { t
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
- * The output will be a {@link Uint8Array patch}
+ * The output will be a {@link SerialPatch} if the user provided {@link Differ} returns a Serialized patch,
+ * it will be converted to a {@link MiniPatch} and then combined with the other patches
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
@@ -101,7 +105,7 @@ export function diff(
   output: unknown,
   ptr: Pointer,
   opts: DiffOpts & { transform: 'serialize' },
-): Uint8Array;
+): SerialPatch;
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
  * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
@@ -111,14 +115,14 @@ export function diff(
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
  *
  * The output will be a {@link Patch} if the user provided {@link Differ} returns a Serialized patch,
- * it will be converted to a {@link Mini.Patch} and then combined with the other patches
+ * it will be converted to a {@link MiniPatch} and then combined with the other patches
  *
  * @param input - The input to compare from
  * @param output - The output to compare to
  * @param ptr - Pointer representing the current position relative to the input root
  * @param opts - Optional options for custom handling
  */
-export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOpts): Mini.Patch;
+export function diff(input: unknown, output: unknown, ptr: Pointer, opts: DiffOpts): MiniPatch;
 
 export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffOpts): Patch {
   // Are they equal, then return empty diff
@@ -183,7 +187,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffO
 /**
  * If one side is nullish then we immediately know the most optimal solution
  */
-function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   if (eqNullable(input, output, opts)) return [];
 
   if (input === undefined) return [['+', ptr, output]];
@@ -195,7 +199,7 @@ function diffNullable(input: unknown, output: unknown, ptr: Pointer, opts: WithS
 /**
  * If an input has the ability to generate a diff
  */
-function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   if (!(typeof input === 'object' && 'diff' in input && typeof input.diff === 'function')) opts.skip();
 
   return transform((input as any).diff(output, ptr, opts), 'minify');
@@ -204,19 +208,19 @@ function diffFunction(input: object, output: object, ptr: Pointer, opts: WithSki
 /**
  * If an input has a custom equality method
  */
-function diffCustom(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffCustom(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   return eqCustom(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
 /**
  * Compare two primitive types
  */
-function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   return eqPrimitive(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
 /**
- * Create a {@link Mini.Patch} to transform array a into b
+ * Create a {@link MiniPatch} to transform array a into b
  *
  * This is achieved through the use of an Edit Distance algorithm with supported operations:
  * > add
@@ -229,12 +233,7 @@ function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: With
  *  - Add support for move (alias for remove and add)
  *  - Add support for sub index mutations
  */
-function diffArray(
-  input: Array<unknown>,
-  output: Array<unknown>,
-  ptr: Pointer,
-  opts: WithSkip<CreateOpts>,
-): Mini.Patch {
+function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, opts: WithSkip<CreateOpts>): MiniPatch {
   if (eqArray(input, output, opts)) return [];
 
   function getCost(x: Op) {
@@ -324,7 +323,7 @@ function diffArray(
   }
 
   // Backtrack to get the operations list
-  const operations: Mini.Patch = [];
+  const operations: MiniPatch = [];
 
   for (let inputIndex = inputSize, outputIndex = outputSize; inputIndex > 0 || outputIndex > 0; ) {
     const op = ops[inputIndex][outputIndex];
@@ -358,11 +357,11 @@ function diffArray(
   return operations;
 }
 
-function diffWrapper(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffWrapper(input: object, output: object, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   return eqWrapper(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
-function diffSet(input: Set<unknown>, output: Set<unknown>, ptr: Pointer, opts: WithSkip<DiffOpts>): Mini.Patch {
+function diffSet(input: Set<unknown>, output: Set<unknown>, ptr: Pointer, opts: WithSkip<DiffOpts>): MiniPatch {
   return eqSet(input, output, opts) ? [] : [['~', ptr, output]];
 }
 
@@ -374,10 +373,10 @@ function diffMap(
   output: Map<any, any>,
   ptr: Pointer,
   opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
-): Mini.Patch {
+): MiniPatch {
   if (eqMap(input, output, opts)) return [];
 
-  const ops: Mini.Patch = [];
+  const ops: MiniPatch = [];
 
   // If recursion occurs then force a full replacement and let the user handle serializing it
   let length = opts[inputSeen]?.length ?? 0;
@@ -418,10 +417,10 @@ function diffObject(
   output: object,
   ptr: Pointer,
   opts: WithSkip<DiffOpts> & { [inputSeen]?: any[]; [outputSeen]?: any[] },
-): Mini.Patch {
+): MiniPatch {
   if (eqObject(input, output, opts)) return [];
 
-  const ops: Mini.Patch = [];
+  const ops: MiniPatch = [];
 
   // If recursion occurs then force a full replacement and let the user handle serializing it
   let length = opts[inputSeen]?.length ?? 0;
