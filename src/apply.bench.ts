@@ -3,7 +3,7 @@ import { apply } from './apply';
 import { Patch } from './patch';
 import { Pointer } from './pointer';
 
-describe.for([1, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6])('%i op patch', i => {
+describe.for([1, 1e1, 1e2, 1e3, 1e4])('%i op patch', i => {
   for (const [name, patch] of [
     ['Maxi + Pointer', [{ op: 'add', path: Pointer.from('/baz'), value: 'qux' }]],
     ['Maxi + String', [{ op: 'add', path: '/baz', value: 'qux' }]],
