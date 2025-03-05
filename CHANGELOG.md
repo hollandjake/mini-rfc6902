@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.5.0...v0.6.0) (2025-03-05)
+
+
+### Features
+
+* improve binary format compression ([68019f8](https://github.com/hollandjake/mini-rfc6902/commit/68019f8e4a3407f46010e6188026a68656455fcc))
+
+
+### Bug Fixes
+
+* performance optimizations ([2528ee1](https://github.com/hollandjake/mini-rfc6902/commit/2528ee190a4f74a504376d91437981600fd656cd))
+
 ## [0.5.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.4.1...v0.5.0) (2025-03-03)
 
 
