@@ -36,9 +36,9 @@ export function eq(a: any, b: any, opts?: EqOpts): boolean {
   }
 
   // Run through default handlers
-  for (const eqFunc of defaultEqFunc) {
+  for (let i = 0; i < defaultEqFunc.length; i++) {
     try {
-      return eqFunc(a, b, {
+      return defaultEqFunc[i](a, b, {
         ...opts,
         skip,
       });

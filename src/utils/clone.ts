@@ -27,7 +27,8 @@ export function clone<T>(val: T, opts?: CloneOpts & { [refs]?: Map<any, any> }):
   }
 
   // Run through default handlers
-  for (const cloner of defaultCloners) {
+  for (let i = 0; i < defaultCloners.length; i++) {
+    const cloner = defaultCloners[i];
     try {
       const res = cloner(val, {
         ...opts,

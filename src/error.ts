@@ -4,40 +4,39 @@ import { Pointer } from './pointer';
 export class PointerError extends Error {}
 
 export class MissingError extends Error {
-  name = 'MissingError';
-
   constructor(public ptr: Pointer) {
     super(`Value required at path: '${ptr}'`);
+    this.name = 'MissingError';
   }
 }
 
 export class TestError extends Error {
-  name = 'TestError';
-
   constructor(
     public actual: unknown,
     public expected: unknown,
   ) {
     super(`Test failed: '${actual}' !== '${expected}'`);
+    this.name = 'TestError';
   }
 }
 
 export class InvalidOperationError extends Error {
-  name = 'InvalidOperationError';
-
   constructor(public op: Op) {
     super(`Invalid operation: '${JSON.stringify(op)}'`);
+    this.name = 'InvalidOperationError';
   }
 }
 
 export class InvalidPatchError extends Error {
-  name = 'InvalidPatchError';
-
   constructor(public patch: any) {
     super(`Invalid patch: '${patch}'`);
+    this.name = 'InvalidPatchError';
   }
 }
 
 export class UnserializableError extends Error {
-  name = 'UnserializableError';
+  constructor(message: any) {
+    super(message);
+    this.name = 'UnserializableError';
+  }
 }
