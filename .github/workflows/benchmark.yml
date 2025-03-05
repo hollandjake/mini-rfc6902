@@ -8,10 +8,10 @@ permissions:
   contents: write
   pull-requests: write
 
-name: test
+name: benchmark
 
 jobs:
-  test:
+  benchmark:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,17 +31,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Test
-        run: pnpm test
-
-      - name: Build
-        run: pnpm build
-
-      - name: Type validator
-        run: pnpm validate
-
-      - name: Verify the integrity of provenance attestations and registry signatures for installed dependencies
-        run: pnpm audit signatures --prod
+      - name: Run benchmarks
+        uses: CodSpeedHQ/action@v3
+        with:
+          run: pnpm bench
+          token: ${{ secrets.CODSPEED_TOKEN }}
