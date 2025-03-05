@@ -81,23 +81,23 @@ const b = {
   favoriteFruit: 'apple',
 };
 
-bench('default', () => {
+bench('create - default', () => {
   create(a, b);
 });
 
-bench('maxi', () => {
+bench('create - maxi', () => {
   create(a, b, { transform: 'maximize' });
 });
 
-bench('mini', () => {
+bench('create - mini', () => {
   create(a, b, { transform: 'minify' });
 });
 
-bench('binary', () => {
+bench('create - binary', () => {
   create(a, b, { transform: 'serialize' });
 });
 
-bench('custom', () => {
+bench('create - custom', () => {
   create(a, b, {
     diff: (_, o, p) => {
       // example force all to be removed and added (effectively a replacement)
@@ -121,6 +121,6 @@ class SomeClass implements Diffable {
 
 const X = new SomeClass(a);
 const Y = new SomeClass(b);
-bench('object with own diff function', () => {
+bench('create - object with own diff function', () => {
   create(X, Y);
 });
