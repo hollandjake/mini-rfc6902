@@ -104,7 +104,22 @@ export function serialize(patch: Patch): SerialPatch {
   }
   patch = minify(patch);
 
-  return Buffer.concat(patch.map(serializeOp));
+  const ops: Serial.Op[] = patch.map(serializeOp);
+
+  // Get the total length of all arrays.
+  let length = 0;
+  for (let i = 0; i < ops.length; i++) length += ops[i].length;
+
+  // Create a new array with total length and merge all source arrays.
+  const result = new Uint8Array(length);
+  let offset = 0;
+  for (let i = 0; i < ops.length; i++) {
+    const x = ops[i];
+    result.set(x, offset);
+    offset += x.length;
+  }
+
+  return result;
 }
 
 export function serializeOp(op: Op): Serial.Op {

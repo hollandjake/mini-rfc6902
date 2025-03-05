@@ -14,8 +14,10 @@ export function apply<DocType>(target: DocType, patch: Patch | null, opts: Apply
   let b: unknown = clone(target, opts);
 
   if (!patch) return b;
+  const minifiedPatch = minify(patch);
 
-  for (const op of minify(patch)) {
+  for (let i = 0; i < minifiedPatch.length; i++) {
+    const op = minifiedPatch[i];
     switch (op[0]) {
       case '+':
         b = add(b, op, opts);

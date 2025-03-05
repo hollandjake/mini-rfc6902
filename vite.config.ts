@@ -1,3 +1,5 @@
+import { Measurement } from '@codspeed/core';
+import codspeedPlugin from '@codspeed/vitest-plugin';
 import terser from '@rollup/plugin-terser';
 import { copyFile } from 'node:fs/promises';
 import dts from 'vite-plugin-dts';
@@ -9,9 +11,10 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
     },
+    fileParallelism: true,
   },
   build: {
-    target: 'es6',
+    target: 'ES2020',
     minify: false,
     lib: {
       entry: 'src/index.ts',
@@ -40,6 +43,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    ...(Measurement.isInstrumented() ? [codspeedPlugin()] : []),
     requireTransform(),
     dts({
       rollupTypes: true,

@@ -163,11 +163,11 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffO
   }
 
   // Run through default handlers
-  for (const differ of defaultDiffers) {
+  for (let i = 0; i < defaultDiffers.length; i++) {
     try {
       return transform(
         clone(
-          differ(input, output, ptr, {
+          defaultDiffers[i](input, output, ptr, {
             ...opts,
             skip,
           }),
