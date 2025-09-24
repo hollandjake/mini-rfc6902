@@ -1,7 +1,7 @@
 import { InvalidOperationError, InvalidPatchError, UnserializableError } from './error';
 import { Pointer } from './pointer';
 import { eq, getInt32LE } from './utils';
-import { deserializeBSON, serializeBSON } from './utils/bson';
+import { deserializeBSON, serializeBSON } from './utils/bson.cjs';
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Mini {

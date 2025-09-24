@@ -13,8 +13,6 @@
     "url": "https://github.com/hollandjake/mini-rfc6902/issues"
   },
   "type": "module",
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.mjs",
   "exports": {
     "import": {
       "types": "./dist/index.d.mts",
@@ -25,11 +23,13 @@
       "default": "./dist/index.cjs"
     }
   },
-  "unpkg": "./dist/index.umd.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
   "files": [
     "dist"
   ],
   "scripts": {
+    "bench": "vitest bench --run",
     "build": "vite build",
     "clean": "gts clean",
     "clean:build": "pnpm clean && pnpm build",
@@ -37,8 +37,7 @@
     "lint:fix": "gts fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "validate": "attw --pack",
-    "bench": "vitest bench --run"
+    "validate": "attw --pack"
   },
   "types": "./dist/index.d.cts",
   "peerDependencies": {
@@ -72,5 +71,6 @@
   "engines": {
     "node": ">=11.0.0"
   },
-  "readme": "./README.md"
+  "readme": "./README.md",
+  "unpkg": "./dist/index.umd.js"
 }
