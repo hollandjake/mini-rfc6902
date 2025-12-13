@@ -4,7 +4,7 @@ import type { Pointer } from '../pointer';
 export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
 export type Transformer = 'minify' | 'maximize' | 'serialize';
-type TransformOpts = { transform?: Transformer };
+export type TransformOpts = { transform?: Transformer };
 export type CreateOpts = EqOpts & CloneOpts & TransformOpts & { diff?: Differ };
 export type DiffOpts = CreateOpts;
 
@@ -36,12 +36,12 @@ export type Cloner<T = any, O extends object = object> = (val: T, opts: WithSkip
  *
  * Call `opts.skip()` to allow default handling
  */
-export type Differ<O extends object = object> = (
+export type Differ<O extends object = object, T extends Patch = Patch> = (
   input: Exclude<any, null | undefined>,
   output: Exclude<any, null | undefined>,
   ptr: Pointer,
   opts: WithSkip<DiffOpts> & O,
-) => Patch;
+) => T;
 
 /**
  * Optional user defined deep equality function

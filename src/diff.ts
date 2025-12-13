@@ -7,9 +7,11 @@ import {
   type Op,
   type Patch,
   type SerialPatch,
+  serializeOp,
 } from './patch';
 import type { Pointer } from './pointer';
 import {
+  type CloneOpts,
   type CreateOpts,
   clone,
   type Differ,
@@ -25,11 +27,12 @@ import {
   eqWrapper,
   SKIP,
   skip,
+  type TransformOpts,
   transform,
   type WithSkip,
 } from './utils';
 
-const defaultDiffers: Differ[] = [
+const defaultDiffers: Differ<{}, MiniPatch>[] = [
   diffFunction,
   diffCustom,
   diffPrimitive,
@@ -174,16 +177,15 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffO
   // Run through default handlers
   for (let i = 0; i < defaultDiffers.length; i++) {
     try {
-      return transform(
-        clone(
-          defaultDiffers[i](input, output, ptr, {
-            ...opts,
-            skip,
-          }),
-          opts,
-        ),
-        opts?.transform,
-      );
+      let patch = defaultDiffers[i](input, output, ptr, {
+        ...opts,
+        skip,
+      });
+
+      // Could a full replacement be better? if so, let's use that
+      patch = checkFullReplace(output, ptr, patch, opts);
+
+      return transform(clone(patch, opts), opts?.transform);
     } catch (e) {
       if (e !== SKIP) throw e;
     }
@@ -245,12 +247,6 @@ function diffPrimitive(input: unknown, output: unknown, ptr: Pointer, opts: With
 function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, opts: WithSkip<CreateOpts>): MiniPatch {
   if (eqArray(input, output, opts)) return [];
 
-  function getCost(x: Op) {
-    if (opts.transform === 'minify') x = minifyOp(x);
-    if (opts.transform === 'maximize') x = maximizeOp(x);
-    return JSON.stringify(x).length;
-  }
-
   const inputSize = input.length;
   const outputSize = output.length;
 
@@ -278,7 +274,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Add
       if (outputIndex < outputSize) {
         const op: Mini.Op = ['+', ptr.extend(inputIndex), output[outputIndex]];
-        const cost = dp[inputIndex][outputIndex] + getCost(op);
+        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
         if (cost < dp[inputIndex][outputIndex + 1]) {
           dp[inputIndex][outputIndex + 1] = cost;
           ops[inputIndex][outputIndex + 1] = op;
@@ -288,7 +284,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Remove
       if (inputIndex < inputSize) {
         const op: Mini.Op = ['-', ptr.extend(inputIndex)];
-        const cost = dp[inputIndex][outputIndex] + getCost(op);
+        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
         if (cost < dp[inputIndex + 1][outputIndex]) {
           dp[inputIndex + 1][outputIndex] = cost;
           ops[inputIndex + 1][outputIndex] = op;
@@ -298,7 +294,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Replace
       if (inputIndex < inputSize && outputIndex < outputSize) {
         const op: Mini.Op = ['~', ptr.extend(inputIndex), output[outputIndex]];
-        const cost = dp[inputIndex][outputIndex] + getCost(op);
+        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
         if (cost < dp[inputIndex + 1][outputIndex + 1]) {
           dp[inputIndex + 1][outputIndex + 1] = cost;
           ops[inputIndex + 1][outputIndex + 1] = op;
@@ -310,7 +306,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
         for (let k = 0; k < inputIndex; k++) {
           if (eq(input[k], output[outputIndex], opts)) {
             const op: Mini.Op = ['^', ptr.extend(k), ptr.extend(outputIndex)];
-            const cost = dp[inputIndex][outputIndex] + getCost(op);
+            const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
             if (cost < dp[inputIndex][outputIndex + 1]) {
               dp[inputIndex][outputIndex + 1] = cost;
               ops[inputIndex][outputIndex + 1] = op;
@@ -322,7 +318,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Replace Entire Array
       if (inputIndex < inputSize && outputIndex < outputSize) {
         const replaceArrayOp: Mini.Op = ['~', ptr, output.slice(0, outputIndex + 1)];
-        const replaceArrayCost = getCost(replaceArrayOp);
+        const replaceArrayCost = getCost(replaceArrayOp, opts);
         if (replaceArrayCost < dp[inputIndex][outputIndex]) {
           dp[inputIndex + 1][outputIndex + 1] = replaceArrayCost;
           ops[inputIndex + 1][outputIndex + 1] = replaceArrayOp;
@@ -462,4 +458,37 @@ function diffObject(
   opts[outputSeen].pop();
 
   return ops;
+}
+
+function getCost(x: Op, opts?: TransformOpts) {
+  if (opts?.transform === 'serialize') return serializeOp(x).length;
+  if (opts?.transform === 'minify') x = minifyOp(x);
+  if (opts?.transform === 'maximize') x = maximizeOp(x);
+  return JSON.stringify(x).length;
+}
+
+function getPatchCost(patch: Patch, opts?: TransformOpts) {
+  patch = transform(patch, opts?.transform);
+
+  if (opts?.transform === 'serialize') return (patch as SerialPatch).length;
+  return (patch as Op[]).reduce((sum, op) => sum + getCost(op, opts), 0);
+}
+
+function checkFullReplace(
+  output: unknown,
+  ptr: Pointer,
+  patch: MiniPatch,
+  opts?: CloneOpts & TransformOpts,
+): MiniPatch {
+  try {
+    // Check whether a full replacement would be smaller than the defined ops
+    const fullReplace: MiniPatch = [['~', ptr, clone(output, opts)]];
+    const fullReplaceCost = getPatchCost(fullReplace, opts);
+    const opsCost = getPatchCost(patch, opts);
+
+    if (fullReplaceCost < opsCost) return fullReplace;
+  } catch (e) {
+    if (!(e instanceof TypeError) || !e.message.startsWith('Converting circular structure to JSON')) throw e;
+  }
+  return patch;
 }

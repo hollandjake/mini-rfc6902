@@ -102,6 +102,9 @@ describe('create', () => {
     [new Date(0), new Date(1)],
     [/a/g, /b/g],
     [/a/g, /a/i],
+    [nonStringKeyedObjectA, nonStringKeyedObjectB],
+  ];
+  const nonSerializableSuite = [
     [
       new Map([
         ['a', 1],
@@ -113,9 +116,6 @@ describe('create', () => {
         ['b', 2],
       ]),
     ],
-    [nonStringKeyedObjectA, nonStringKeyedObjectB],
-  ];
-  const nonSerializableSuite = [
     [funcA, funcAClone],
     [funcA, funcB],
     [symbolA, symbolAClone],
@@ -204,6 +204,19 @@ describe('create', () => {
 
       const a = new SomeDiffClass('a');
       const b = new SomeDiffClass('b');
+      const patch = create(a, b);
+      expect(patch).not.toEqual(null);
+      expect(apply(a, patch)).toEqual(b);
+    });
+
+    test('replace root', ({ expect }) => {
+      const a = {
+        some_key: 'some_val',
+        some_other_key: 'some_other_val',
+      };
+      const b = {
+        some_new_key: 'some_new_val',
+      };
       const patch = create(a, b);
       expect(patch).not.toEqual(null);
       expect(apply(a, patch)).toEqual(b);
