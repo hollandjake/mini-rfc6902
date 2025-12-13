@@ -1,9 +1,9 @@
 module.exports = {
-  serializeBSON: function () {
+  serializeBSON: () => {
     throw new ReferenceError("Serialization requires 'bson' to be installed");
   },
 
-  deserializeBSON: function () {
+  deserializeBSON: () => {
     throw new ReferenceError("Deserialization requires 'bson' to be installed");
   },
 };

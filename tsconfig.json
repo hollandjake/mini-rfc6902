@@ -8,7 +8,7 @@
     "declarationMap": false,
     "skipLibCheck": true,
     "noEmit": true,
-    "rootDir": "src",
+    "rootDir": "src"
   },
   "extends": "./node_modules/gts/tsconfig-google.json",
   "include": ["src", "vite.config.ts"]
