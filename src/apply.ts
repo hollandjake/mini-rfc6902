@@ -1,7 +1,7 @@
 import { TestError } from './error';
-import { Mini, minify, Patch } from './patch';
+import { type Mini, minify, type Patch } from './patch';
 import { Pointer } from './pointer';
-import { ApplyOpts, clone, eq } from './utils';
+import { type ApplyOpts, clone, eq } from './utils';
 
 /**
  *

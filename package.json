@@ -31,10 +31,9 @@
   "scripts": {
     "bench": "vitest bench --run",
     "build": "vite build",
-    "clean": "gts clean",
-    "clean:build": "pnpm clean && pnpm build",
-    "lint": "gts lint",
-    "lint:fix": "gts fix",
+    "lint": "biome check",
+    "ci": "biome ci",
+    "lint:fix": "biome check --write",
     "test": "vitest run",
     "test:watch": "vitest",
     "validate": "attw --pack"
@@ -50,6 +49,7 @@
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.17.4",
+    "@biomejs/biome": "^2.3.8",
     "@codspeed/core": "^4.0.0",
     "@codspeed/vitest-plugin": "^4.0.0",
     "@rollup/plugin-terser": "^0.4.4",

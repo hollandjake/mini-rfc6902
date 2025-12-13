@@ -1,8 +1,8 @@
 import { bench } from 'vitest';
 import { create } from './create';
-import { Patch } from './patch';
-import { Pointer } from './pointer';
-import { Diffable, DiffOpts, WithSkip } from './utils';
+import type { Patch } from './patch';
+import type { Pointer } from './pointer';
+import type { Diffable, DiffOpts, WithSkip } from './utils';
 
 const a = {
   _id: '67c841f610a0ba30417bea1b',

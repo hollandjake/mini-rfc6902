@@ -1,10 +1,19 @@
-import { maximizeOp, MaxiPatch, Mini, minifyOp, MiniPatch, Op, Patch, SerialPatch } from './patch';
-import { Pointer } from './pointer';
 import {
+  type MaxiPatch,
+  type Mini,
+  type MiniPatch,
+  maximizeOp,
+  minifyOp,
+  type Op,
+  type Patch,
+  type SerialPatch,
+} from './patch';
+import type { Pointer } from './pointer';
+import {
+  type CreateOpts,
   clone,
-  CreateOpts,
-  Differ,
-  DiffOpts,
+  type Differ,
+  type DiffOpts,
   eq,
   eqArray,
   eqCustom,
@@ -17,7 +26,7 @@ import {
   SKIP,
   skip,
   transform,
-  WithSkip,
+  type WithSkip,
 } from './utils';
 
 const defaultDiffers: Differ[] = [

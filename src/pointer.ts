@@ -16,15 +16,15 @@ export class Pointer {
     if (str instanceof Pointer) return str;
     if (str) {
       if (typeof str === 'object') {
-        if ('buffer' in str && str['buffer'] instanceof Uint8Array) str = str.buffer;
-        else if ('tokens' in str && Array.isArray(str['tokens'])) return new Pointer(str['tokens']);
+        if ('buffer' in str && str.buffer instanceof Uint8Array) str = str.buffer;
+        else if ('tokens' in str && Array.isArray(str.tokens)) return new Pointer(str.tokens);
       }
       if (str instanceof Uint8Array || str instanceof ArrayBuffer) str = new TextDecoder().decode(str);
     }
     if (typeof str !== 'string') throw new PointerError(`Invalid pointer '${str}'`);
 
     const [, ...tokens] = str.split('/');
-    return new Pointer(tokens.map(unescape));
+    return new Pointer(tokens.map(tokenUnescape));
   }
 
   delete<T>(a: T): T | undefined {
@@ -43,7 +43,7 @@ export class Pointer {
     } else if (obj instanceof Map) {
       obj.delete(key);
     } else if (key !== undefined) {
-      delete obj![key as never];
+      delete obj?.[key as never];
     }
 
     return a;
@@ -54,7 +54,7 @@ export class Pointer {
     existCheck?: boolean,
   ): [parent: NonNullable<T> | null, key: Token | undefined, value: unknown] {
     let parent = null;
-    let key: Token | undefined = undefined;
+    let key: Token | undefined;
     let value = a;
 
     for (let i = 0; i < this.tokens.length; i++) {
@@ -124,6 +124,7 @@ export class Pointer {
         obj.splice(Number(key), 0, newVal);
       }
     } else if (key !== undefined) {
+      // biome-ignore lint/style/noNonNullAssertion: We expect it to error here
       obj![key as never] = newVal as never;
     }
 
@@ -139,6 +140,7 @@ export class Pointer {
       if (obj instanceof Map) {
         obj.set(key, value);
       } else {
+        // biome-ignore lint/style/noNonNullAssertion: We expect it to error here
         obj![key as never] = value as never;
       }
     }
@@ -161,7 +163,7 @@ export class Pointer {
    * https://datatracker.ietf.org/doc/html/rfc6901#section-5
    */
   public toString() {
-    return this.tokens.length ? `/${this.tokens.map(escape).join('/')}` : '';
+    return this.tokens.length ? `/${this.tokens.map(tokenEscape).join('/')}` : '';
   }
 
   public asymmetricMatch(other: unknown) {
@@ -184,7 +186,7 @@ export const RootPointer = new Pointer([]);
  *
  * @param token - The token to escape
  */
-function escape(token: Token): string {
+function tokenEscape(token: Token): string {
   if (typeof token === 'number') token = `${token}`;
   return token.toString().replace(/~/g, '~0').replace(/\//g, '~1');
 }
@@ -201,6 +203,6 @@ function escape(token: Token): string {
  *
  * @param token - The escaped token to unescape
  */
-function unescape(token: string): Token {
+function tokenUnescape(token: string): Token {
   return token.replace(/~1/g, '/').replace(/~0/g, '~');
 }

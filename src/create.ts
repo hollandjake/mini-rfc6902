@@ -1,7 +1,7 @@
 import { diff } from './diff';
-import { MaxiPatch, MiniPatch, Patch, SerialPatch, maximize, minify, serialize } from './patch';
+import { type MaxiPatch, type MiniPatch, maximize, minify, type Patch, type SerialPatch, serialize } from './patch';
 import { RootPointer } from './pointer';
-import { CreateOpts } from './utils';
+import type { CreateOpts } from './utils';
 
 /**
  * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.

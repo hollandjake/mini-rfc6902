@@ -1,5 +1,5 @@
-import { Patch } from '../patch';
-import { Pointer } from '../pointer';
+import type { Patch } from '../patch';
+import type { Pointer } from '../pointer';
 
 export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
@@ -25,7 +25,7 @@ export function skip(): never {
  *
  * Call `opts.skip()` to allow default handling
  */
-export type Cloner<T = any, O extends object = {}> = (val: T, opts: WithSkip<CloneOpts> & O) => T;
+export type Cloner<T = any, O extends object = object> = (val: T, opts: WithSkip<CloneOpts> & O) => T;
 /**
  * Optional user defined diff creation function
  *
@@ -36,7 +36,7 @@ export type Cloner<T = any, O extends object = {}> = (val: T, opts: WithSkip<Clo
  *
  * Call `opts.skip()` to allow default handling
  */
-export type Differ<O extends object = {}> = (
+export type Differ<O extends object = object> = (
   input: Exclude<any, null | undefined>,
   output: Exclude<any, null | undefined>,
   ptr: Pointer,
@@ -52,7 +52,7 @@ export type Differ<O extends object = {}> = (
  *
  * Call `opts.skip()` to allow default handling
  */
-export type EqFunc<O extends object = {}> = (
+export type EqFunc<O extends object = object> = (
   a: Exclude<any, null | undefined>,
   b: Exclude<any, null | undefined>,
   opts: WithSkip<EqOpts> & O,
