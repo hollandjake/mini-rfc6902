@@ -19,10 +19,26 @@ export namespace Mini {
 export namespace Maxi {
   export type AddOp<V = any> = { op: 'add'; path: Pointer | string; value: V };
   export type RemoveOp = { op: 'remove'; path: Pointer | string };
-  export type ReplaceOp<V = any> = { op: 'replace'; path: Pointer | string; value: V };
-  export type MoveOp = { op: 'move'; from: Pointer | string; path: Pointer | string };
-  export type CopyOp = { op: 'copy'; from: Pointer | string; path: Pointer | string };
-  export type TestOp<V = any> = { op: 'test'; path: Pointer | string; value: V };
+  export type ReplaceOp<V = any> = {
+    op: 'replace';
+    path: Pointer | string;
+    value: V;
+  };
+  export type MoveOp = {
+    op: 'move';
+    from: Pointer | string;
+    path: Pointer | string;
+  };
+  export type CopyOp = {
+    op: 'copy';
+    from: Pointer | string;
+    path: Pointer | string;
+  };
+  export type TestOp<V = any> = {
+    op: 'test';
+    path: Pointer | string;
+    value: V;
+  };
   export type Op = AddOp | RemoveOp | ReplaceOp | MoveOp | CopyOp | TestOp;
   export type Patch = Op[];
 }
@@ -83,9 +99,17 @@ export function maximizeOp(op: Op): Maxi.Op {
     case '~':
       return { op: 'replace', path: Pointer.from(op[1]), value: op[2] };
     case '>':
-      return { op: 'move', from: Pointer.from(op[1]), path: Pointer.from(op[2]) };
+      return {
+        op: 'move',
+        from: Pointer.from(op[1]),
+        path: Pointer.from(op[2]),
+      };
     case '^':
-      return { op: 'copy', from: Pointer.from(op[1]), path: Pointer.from(op[2]) };
+      return {
+        op: 'copy',
+        from: Pointer.from(op[1]),
+        path: Pointer.from(op[2]),
+      };
     case '?':
       return { op: 'test', path: Pointer.from(op[1]), value: op[2] };
   }
@@ -161,8 +185,8 @@ function isPointerable(x: unknown): x is typeof Pointer | string {
   if (x instanceof Pointer) return true;
   if (x instanceof Uint8Array) return true;
   if (typeof x === 'object') {
-    if ('buffer' in x && x['buffer'] instanceof Uint8Array) return true;
-    else if ('tokens' in x && Array.isArray(x['tokens'])) return true;
+    if ('buffer' in x && x.buffer instanceof Uint8Array) return true;
+    else if ('tokens' in x && Array.isArray(x.tokens)) return true;
   }
   return false;
 }
@@ -193,16 +217,16 @@ function isMaximised(op: Op): op is Maxi.Op {
   if (!('op' in op)) return false;
   if (!('path' in op)) return false;
 
-  switch (op['op']) {
+  switch (op.op) {
     case 'add':
     case 'replace':
     case 'test':
-      return isPointerable(op['path']) && 'value' in op;
+      return isPointerable(op.path) && 'value' in op;
     case 'remove':
-      return isPointerable(op['path']);
+      return isPointerable(op.path);
     case 'move':
     case 'copy':
-      return isPointerable(op['path']) && 'from' in op && isPointerable(op['from']);
+      return isPointerable(op.path) && 'from' in op && isPointerable(op.from);
     default:
       return false;
   }

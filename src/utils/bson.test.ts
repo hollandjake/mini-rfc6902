@@ -1,17 +1,14 @@
 import { test, vi } from 'vitest';
 
 void vi.hoisted(async () => {
-  const { Module } = await import('module');
+  const { Module } = await import('node:module');
 
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   Module._load_original = Module._load;
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
+  // @ts-expect-error
   Module._load = (uri, parent) => {
     if (uri === 'bson') return undefined;
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
+    // @ts-expect-error
     return Module._load_original(uri, parent);
   };
 });
