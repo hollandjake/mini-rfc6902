@@ -1,4 +1,4 @@
-import { CloneOpts, Cloner, skip, SKIP, WithSkip } from './types';
+import { type CloneOpts, type Cloner, SKIP, skip, type WithSkip } from './types';
 
 const defaultCloners: Cloner[] = [
   clonePrimitive,
@@ -56,12 +56,12 @@ function clonePrimitive<T extends Exclude<unknown, 'object'>>(val: T, opts: With
 
 function cloneArray<T extends Array<unknown>>(val: T, opts: WithSkip<CloneOpts>): T {
   if (!Array.isArray(val)) opts.skip();
-  return val.map(v => clone(v, opts)) as T;
+  return val.map((v) => clone(v, opts)) as T;
 }
 
-function cloneCustom<T extends { clone: Function }>(val: T, opts: WithSkip<CloneOpts>): T {
+function cloneCustom<T extends { clone: () => T }>(val: T, opts: WithSkip<CloneOpts>): T {
   if (!('clone' in val) || typeof val.clone !== 'function') opts.skip();
-  return val.clone() as T;
+  return val.clone();
 }
 
 function cloneWrapper<
@@ -101,7 +101,7 @@ function cloneWrapper<
 
 function cloneSet<T extends Set<unknown>>(val: T, opts: WithSkip<CloneOpts>): T {
   if (!(val instanceof Set)) opts.skip();
-  return new Set([...val].map(value => clone(value, opts))) as T;
+  return new Set([...val].map((value) => clone(value, opts))) as T;
 }
 
 function cloneMap<T extends Map<unknown, unknown>>(val: T, opts: WithSkip<CloneOpts>): T {
@@ -121,10 +121,10 @@ function cloneObject<T extends object>(val: T, opts: WithSkip<CloneOpts> & { [re
 
   opts[refs].set(val, cloned);
 
-  Object.getOwnPropertyNames(val).forEach(k => {
+  Object.getOwnPropertyNames(val).forEach((k) => {
     cloned[k as never] = clone(val[k as never], opts);
   });
-  Object.getOwnPropertySymbols(val).forEach(k => {
+  Object.getOwnPropertySymbols(val).forEach((k) => {
     cloned[k as never] = clone(val[k as never], opts);
   });
 

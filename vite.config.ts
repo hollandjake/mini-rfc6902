@@ -1,7 +1,7 @@
+import { copyFile } from 'node:fs/promises';
 import { Measurement } from '@codspeed/core';
 import codspeedPlugin from '@codspeed/vitest-plugin';
 import terser from '@rollup/plugin-terser';
-import { copyFile } from 'node:fs/promises';
 import dts from 'vite-plugin-dts';
 import requireTransform from 'vite-plugin-require-transform';
 import { defineConfig } from 'vitest/config';

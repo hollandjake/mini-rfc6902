@@ -16,23 +16,22 @@ export class Pointer {
     if (str instanceof Pointer) return str;
     if (str) {
       if (typeof str === 'object') {
-        if ('buffer' in str && str['buffer'] instanceof Uint8Array) str = str.buffer;
-        else if ('tokens' in str && Array.isArray(str['tokens'])) return new Pointer(str['tokens']);
+        if ('buffer' in str && str.buffer instanceof Uint8Array) str = str.buffer;
+        else if ('tokens' in str && Array.isArray(str.tokens)) return new Pointer(str.tokens);
       }
       if (str instanceof Uint8Array || str instanceof ArrayBuffer) str = new TextDecoder().decode(str);
     }
     if (typeof str !== 'string') throw new PointerError(`Invalid pointer '${str}'`);
 
     const [, ...tokens] = str.split('/');
-    return new Pointer(tokens.map(unescape));
+    return new Pointer(tokens.map(tokenUnescape));
   }
 
   delete<T>(a: T): T | undefined {
     // The target is the root, so deleting it would result in a becoming undefined
     if (RootPointer.asymmetricMatch(this)) return undefined;
 
-    const [obj, key] = this.evaluatePointer(a);
-    if (obj === null) throw new MissingError(this);
+    const [obj, key] = this.evaluatePointer(a, true);
 
     if (Array.isArray(obj)) {
       // ptr must be an array index
@@ -44,26 +43,51 @@ export class Pointer {
     } else if (obj instanceof Map) {
       obj.delete(key);
     } else if (key !== undefined) {
-      delete obj![key as never];
+      delete obj?.[key as never];
     }
 
     return a;
   }
 
-  evaluatePointer<T>(a: unknown): [parent: NonNullable<T> | null, key: Token | undefined, value: unknown] {
+  evaluatePointer<T>(
+    a: unknown,
+    existCheck?: boolean,
+  ): [parent: NonNullable<T> | null, key: Token | undefined, value: unknown] {
     let parent = null;
-    let key: Token | undefined = undefined;
+    let key: Token | undefined;
     let value = a;
 
     for (let i = 0; i < this.tokens.length; i++) {
       parent = value;
+      if (!parent) {
+        if (existCheck) throw new MissingError(this);
+        value = undefined;
+        break;
+      }
+
+      if (typeof parent !== 'object') throw new PointerError(`Invalid key '${key}' for ${parent}`);
+
       key = this.tokens[i];
       if (key === '-') {
-        if (!parent) value = undefined;
-        else if (Array.isArray(parent)) value = parent[parent.length - 1];
+        if (Array.isArray(parent)) key = parent.length;
         else throw new PointerError(`Invalid key '-' for ${parent}`);
+      }
+
+      if (Array.isArray(parent)) {
+        const arrayKey = Number(key);
+        if (Number.isNaN(arrayKey)) throw new PointerError(`Invalid key '${key}' for ${parent}`);
+        if (existCheck && (arrayKey < 0 || arrayKey >= parent.length)) throw new MissingError(this);
+        value = parent[arrayKey];
       } else {
-        value = parent?.[key as never] ?? undefined;
+        if (parent instanceof Map) {
+          if (existCheck && !parent.has(key)) throw new MissingError(this);
+          value = parent.get(key);
+        } else {
+          let resolvedKey: string | number = key as never;
+          if (typeof key === 'object' && 'toString' in key) resolvedKey = key.toString();
+          if (existCheck && !(resolvedKey in parent)) throw new MissingError(this);
+          value = parent[resolvedKey as never];
+        }
       }
     }
 
@@ -76,7 +100,7 @@ export class Pointer {
   }
 
   get<T>(a: T) {
-    const [, , value] = this.evaluatePointer(a);
+    const [, , value] = this.evaluatePointer(a, true);
     return value;
   }
 
@@ -100,6 +124,7 @@ export class Pointer {
         obj.splice(Number(key), 0, newVal);
       }
     } else if (key !== undefined) {
+      // biome-ignore lint/style/noNonNullAssertion: We expect it to error here
       obj![key as never] = newVal as never;
     }
 
@@ -115,6 +140,7 @@ export class Pointer {
       if (obj instanceof Map) {
         obj.set(key, value);
       } else {
+        // biome-ignore lint/style/noNonNullAssertion: We expect it to error here
         obj![key as never] = value as never;
       }
     }
@@ -137,7 +163,7 @@ export class Pointer {
    * https://datatracker.ietf.org/doc/html/rfc6901#section-5
    */
   public toString() {
-    return this.tokens.length ? `/${this.tokens.map(escape).join('/')}` : '';
+    return this.tokens.length ? `/${this.tokens.map(tokenEscape).join('/')}` : '';
   }
 
   public asymmetricMatch(other: unknown) {
@@ -160,7 +186,7 @@ export const RootPointer = new Pointer([]);
  *
  * @param token - The token to escape
  */
-function escape(token: Token): string {
+function tokenEscape(token: Token): string {
   if (typeof token === 'number') token = `${token}`;
   return token.toString().replace(/~/g, '~0').replace(/\//g, '~1');
 }
@@ -177,6 +203,6 @@ function escape(token: Token): string {
  *
  * @param token - The escaped token to unescape
  */
-function unescape(token: string): Token {
+function tokenUnescape(token: string): Token {
   return token.replace(/~1/g, '/').replace(/~0/g, '~');
 }
