@@ -1,5 +1,5 @@
-import { Op } from './patch';
-import { Pointer } from './pointer';
+import type { Op } from './patch';
+import type { Pointer } from './pointer';
 
 export class PointerError extends Error {}
 
