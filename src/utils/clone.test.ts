@@ -2,25 +2,23 @@ import { describe, test } from 'vitest';
 import { clone } from './clone';
 
 describe('primitive', () => {
-  test.for([[null], [undefined], [123], ['string'], [BigInt(123)], [function () {}], [Symbol('symbol')]])(
-    '%s',
-    ([value], { expect }) => {
-      expect(clone(value, {})).toEqual(value);
-    },
-  );
+  test.for([[null], [undefined], [123], ['string'], [BigInt(123)], [() => {}], [Symbol('symbol')]])('%s', ([value], {
+    expect,
+  }) => {
+    expect(clone(value, {})).toEqual(value);
+  });
 });
 
 describe('array', () => {
-  test.for([[[]], [[null, undefined, 123, 'string', BigInt(123), function () {}, Symbol('symbol')]]])(
-    '%s',
-    ([value], { expect }) => {
-      const cloned = clone(value, {});
-      // Equal in content
-      expect(cloned).toEqual(value);
-      // But not in reference
-      expect(cloned).not.toBe(value);
-    },
-  );
+  test.for([[[]], [[null, undefined, 123, 'string', BigInt(123), () => {}, Symbol('symbol')]]])('%s', ([value], {
+    expect,
+  }) => {
+    const cloned = clone(value, {});
+    // Equal in content
+    expect(cloned).toEqual(value);
+    // But not in reference
+    expect(cloned).not.toBe(value);
+  });
 });
 
 test('custom', ({ expect }) => {
@@ -45,7 +43,7 @@ describe('JS Natives', () => {
     [new String('hi')],
     [new Boolean(true)],
     [new Number(1)],
-    [new Set([null, undefined, 123, 'string', BigInt(123), function () {}, Symbol('symbol')])],
+    [new Set([null, undefined, 123, 'string', BigInt(123), () => {}, Symbol('symbol')])],
     [
       new Map([
         ['null', null],
@@ -53,12 +51,12 @@ describe('JS Natives', () => {
         ['number', 123],
         ['string', 'string'],
         ['bigint', BigInt(123)],
-        ['function', function () {}],
+        ['function', () => {}],
         ['symbol', Symbol('symbol')],
       ] as [string, any][]),
     ],
     [new Date(1234)],
-    [new RegExp('some(.+?)val', 'g')],
+    [/some(.+?)val/g],
     [/some(.+?)val/g],
     [new Uint8Array([1, 2, 3])],
     [new Uint16Array([1, 2, 3])],
@@ -82,29 +80,28 @@ describe('JS Natives', () => {
 
 describe('object', () => {
   class A {
-    constructor(private readonly val: string) {}
+    constructor(readonly _val: string) {}
   }
 
   const a: { b: any } = { b: undefined };
   a.b = a;
 
-  test.for([[{}], [{ a: 'b' }], [{ a: { b: 'c' } }], [{ [Symbol('test')]: 'b' }], [new A('test')], [a]])(
-    '%s',
-    ([value], { expect }) => {
-      const cloned = clone(value, {});
-      // Equal in content
-      expect(cloned).toEqual(value);
-      // But not in reference
-      expect(cloned).not.toBe(value);
-    },
-  );
+  test.for([[{}], [{ a: 'b' }], [{ a: { b: 'c' } }], [{ [Symbol('test')]: 'b' }], [new A('test')], [a]])('%s', ([
+    value,
+  ], { expect }) => {
+    const cloned = clone(value, {});
+    // Equal in content
+    expect(cloned).toEqual(value);
+    // But not in reference
+    expect(cloned).not.toBe(value);
+  });
 });
 
 test('override', ({ expect }) => {
   const v = { a: '1' };
   const cloned = clone(v, {
     clone(v, opts) {
-      if (isNaN(v)) opts.skip();
+      if (Number.isNaN(Number(v))) opts.skip();
       return Number(v);
     },
   });
