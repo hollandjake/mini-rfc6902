@@ -1,4 +1,4 @@
-import { EqFunc, EqOpts, SKIP, skip, WithSkip } from './types';
+import { type EqFunc, type EqOpts, SKIP, skip, type WithSkip } from './types';
 
 const defaultEqFunc: EqFunc[] = [eqCustom, eqPrimitive, eqWrapper, eqArray, eqSet, eqMap, eqObject];
 
@@ -81,12 +81,12 @@ export function eqCustom(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolea
 
   const asymmetricA = !!a && typeof a === 'object' && 'asymmetricMatch' in a && typeof a.asymmetricMatch === 'function';
   if (asymmetricA) {
-    if ((a.asymmetricMatch as Function)(b)) return true;
+    if ((a.asymmetricMatch as (a: any) => boolean)(b)) return true;
   }
 
   const asymmetricB = !!b && typeof b === 'object' && 'asymmetricMatch' in b && typeof b.asymmetricMatch === 'function';
   if (asymmetricB) {
-    if ((b.asymmetricMatch as Function)(a)) return true;
+    if ((b.asymmetricMatch as (a: any) => boolean)(a)) return true;
   }
 
   if (!asymmetricA && !asymmetricB) opts.skip();
@@ -172,7 +172,7 @@ export function eqSet(a: object, b: object, opts: WithSkip<EqOpts>): boolean {
     const aVals = [...a.values()];
     const bVals = [...b.values()];
 
-    return aVals.every(aVal => bVals.some(bVal => eq(aVal, bVal, opts)));
+    return aVals.every((aVal) => bVals.some((bVal) => eq(aVal, bVal, opts)));
   }
   return false;
 }
@@ -214,12 +214,12 @@ export function eqObject(a: object, b: object, opts: WithSkip<EqOpts> & { [aSeen
   let res = true;
   const aKeys = Object.keys(a);
   if (!eq(new Set(aKeys), new Set(Object.keys(b)), opts)) res = false;
-  if (res && aKeys.some(k => !eq(a[k as never], b[k as never], opts))) res = false;
+  if (res && aKeys.some((k) => !eq(a[k as never], b[k as never], opts))) res = false;
 
   if (res) {
     const aSymbols = Object.getOwnPropertySymbols(a);
     if (!eq(new Set(aSymbols), new Set(Object.getOwnPropertySymbols(b)), opts)) res = false;
-    if (aSymbols.some(k => !eq(a[k as never], b[k as never], opts))) res = false;
+    if (aSymbols.some((k) => !eq(a[k as never], b[k as never], opts))) res = false;
   }
 
   opts[aSeen].pop();

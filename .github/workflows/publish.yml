@@ -32,6 +32,6 @@ jobs:
         run: pnpm audit signatures --prod
 
       - name: NPM Publish
-        run: pnpm publish --provenance
+        run: pnpm publish
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+          NODE_AUTH_TOKEN: "" # To disable NPM Token authentication and use OIDC authentication

@@ -1,6 +1,6 @@
 import { describe, test } from 'vitest';
 import { apply } from './apply';
-import { Patch } from './patch';
+import type { Patch } from './patch';
 import { Pointer } from './pointer';
 
 /**
@@ -74,20 +74,47 @@ describe('Spec Compliance', () => {
   });
   describe('A.6 - Moving a Value', () => {
     test.for([
-      ['Maxi + Pointer', [{ op: 'move', from: Pointer.from('/foo/waldo'), path: Pointer.from('/qux/thud') }]],
+      [
+        'Maxi + Pointer',
+        [
+          {
+            op: 'move',
+            from: Pointer.from('/foo/waldo'),
+            path: Pointer.from('/qux/thud'),
+          },
+        ],
+      ],
       ['Maxi + String', [{ op: 'move', from: '/foo/waldo', path: '/qux/thud' }]],
       ['Mini + Pointer', [['>', Pointer.from('/foo/waldo'), Pointer.from('/qux/thud')]]],
       ['Mini + String', [['>', '/foo/waldo', '/qux/thud']]],
       ['Serial', Buffer.from('MQAAAAIwAAIAAAA+AAIxAAsAAAAvZm9vL3dhbGRvAAIyAAoAAAAvcXV4L3RodWQAAA==', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
-      const a = { foo: { bar: 'baz', waldo: 'fred' }, qux: { corge: 'grault' } };
-      expect(apply(a, patch)).toEqual({ foo: { bar: 'baz' }, qux: { corge: 'grault', thud: 'fred' } });
-      expect(a).toEqual({ foo: { bar: 'baz', waldo: 'fred' }, qux: { corge: 'grault' } });
+      const a = {
+        foo: { bar: 'baz', waldo: 'fred' },
+        qux: { corge: 'grault' },
+      };
+      expect(apply(a, patch)).toEqual({
+        foo: { bar: 'baz' },
+        qux: { corge: 'grault', thud: 'fred' },
+      });
+      expect(a).toEqual({
+        foo: { bar: 'baz', waldo: 'fred' },
+        qux: { corge: 'grault' },
+      });
     });
   });
   describe('A.7 - Moving an Array Element', () => {
     test.for([
-      ['Maxi + Pointer', [{ op: 'move', from: Pointer.from('/foo/1'), path: Pointer.from('/foo/3') }]],
+      [
+        'Maxi + Pointer',
+        [
+          {
+            op: 'move',
+            from: Pointer.from('/foo/1'),
+            path: Pointer.from('/foo/3'),
+          },
+        ],
+      ],
       ['Maxi + String', [{ op: 'move', from: '/foo/1', path: '/foo/3' }]],
       ['Mini + Pointer', [['>', Pointer.from('/foo/1'), Pointer.from('/foo/3')]]],
       ['Mini + String', [['>', '/foo/1', '/foo/3']]],
@@ -156,20 +183,42 @@ describe('Spec Compliance', () => {
   });
   describe('A.10 - Adding a Nested Member Object', () => {
     test.for([
-      ['Maxi + Pointer', [{ op: 'add', path: Pointer.from('/child'), value: { grandchild: {} } }]],
+      [
+        'Maxi + Pointer',
+        [
+          {
+            op: 'add',
+            path: Pointer.from('/child'),
+            value: { grandchild: {} },
+          },
+        ],
+      ],
       ['Maxi + String', [{ op: 'add', path: '/child', value: { grandchild: {} } }]],
       ['Mini + Pointer', [['+', Pointer.from('/child'), { grandchild: {} }]]],
       ['Mini + String', [['+', '/child', { grandchild: {} }]]],
       ['Serial', Buffer.from('NQAAAAIwAAIAAAArAAIxAAcAAAAvY2hpbGQAAzIAFgAAAANncmFuZGNoaWxkAAUAAAAAAAA=', 'base64')],
     ] as [string, Patch][])('%s', ([, patch], { expect }) => {
       const a = { foo: 'bar' };
-      expect(apply(a, patch)).toEqual({ foo: 'bar', child: { grandchild: {} } });
+      expect(apply(a, patch)).toEqual({
+        foo: 'bar',
+        child: { grandchild: {} },
+      });
       expect(a).toEqual({ foo: 'bar' });
     });
   });
   describe('A.11 - Ignoring Unrecognized Elements', () => {
     test.for([
-      ['Maxi + Pointer', [{ op: 'add', path: Pointer.from('/baz'), value: 'qux', xyz: 123 } as never]],
+      [
+        'Maxi + Pointer',
+        [
+          {
+            op: 'add',
+            path: Pointer.from('/baz'),
+            value: 'qux',
+            xyz: 123,
+          } as never,
+        ],
+      ],
       ['Maxi + String', [{ op: 'add', path: '/baz', value: 'qux', xyz: 123 } as never]],
       ['Mini + Pointer', [['+', Pointer.from('/baz'), 'qux', 123] as never]],
       ['Mini + String', [['+', '/baz', 'qux', 123] as never]],
@@ -250,6 +299,26 @@ describe('Spec Compliance', () => {
       expect(a).toEqual({ foo: ['bar'] });
     });
   });
+  describe('4.4 - move when from not exist', () => {
+    test.for([
+      [
+        'Maxi + Pointer',
+        [
+          {
+            op: 'move',
+            from: Pointer.from('/bar'),
+            path: Pointer.from('/foo'),
+          },
+        ],
+      ],
+      ['Maxi + String', [{ op: 'move', from: '/bar', path: '/foo' }]],
+      ['Mini + Pointer', [['>', Pointer.from('/bar'), Pointer.from('/foo')]]],
+      ['Mini + String', [['>', '/bar', '/foo']]],
+    ] as [string, Patch][])('%s', ([, patch], { expect }) => {
+      const a = { foo: ['bar'] };
+      expect(() => apply(a, patch)).toThrow();
+    });
+  });
 });
 
 describe('Extended Spec', () => {
@@ -276,11 +345,10 @@ describe('Extended Spec', () => {
     expect(obj).toEqual({ bar: 'baz' });
   });
   describe('E.3 - Replace root', () => {
-    test.for([[null], [undefined], [true], [function () {}], ['a'], [0], [[]], [{ a: 'a' }], [new Date(0)]])(
-      '%o -> {}',
-      ([a], { expect }) => {
-        expect(apply(a, [['~', '', {}]])).toEqual({});
-      },
-    );
+    test.for([[null], [undefined], [true], [() => {}], ['a'], [0], [[]], [{ a: 'a' }], [new Date(0)]])('%o -> {}', ([
+      a,
+    ], { expect }) => {
+      expect(apply(a, [['~', '', {}]])).toEqual({});
+    });
   });
 });
