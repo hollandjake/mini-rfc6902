@@ -2,9 +2,9 @@ import { describe, test } from 'vitest';
 import { apply } from './apply';
 import { create } from './create';
 import { UnserializableError } from './error';
-import { Patch } from './patch';
-import { Pointer } from './pointer';
-import { Diffable, DiffOpts, WithSkip } from './utils';
+import type { Patch } from './patch';
+import type { Pointer } from './pointer';
+import type { Diffable, DiffOpts, WithSkip } from './utils';
 
 const undefinedA = undefined;
 const undefinedB = undefined;
@@ -100,8 +100,11 @@ describe('create', () => {
     ],
     [[objA], [objA, objA]],
     [new Date(0), new Date(1)],
-    [new RegExp('a', 'g'), new RegExp('b', 'g')],
-    [new RegExp('a', 'g'), new RegExp('a', 'i')],
+    [/a/g, /b/g],
+    [/a/g, /a/i],
+    [nonStringKeyedObjectA, nonStringKeyedObjectB],
+  ];
+  const nonSerializableSuite = [
     [
       new Map([
         ['a', 1],
@@ -113,9 +116,6 @@ describe('create', () => {
         ['b', 2],
       ]),
     ],
-    [nonStringKeyedObjectA, nonStringKeyedObjectB],
-  ];
-  const nonSerializableSuite = [
     [funcA, funcAClone],
     [funcA, funcB],
     [symbolA, symbolAClone],
@@ -125,7 +125,7 @@ describe('create', () => {
     [new Number(1), new Number(2)],
     [new Boolean(true), new Boolean(false)],
     // Note the y flag is not serializable as it's not part of the BSON spec
-    [new RegExp('a', 'g'), new RegExp('a', 'y')],
+    [/a/g, /a/y],
     [new Uint8Array([1, 2, 3]), new Uint8Array([3, 2, 1])],
     [new Uint16Array([1, 2, 3]), new Uint16Array([3, 2, 1])],
     [new Uint32Array([1, 2, 3]), new Uint32Array([3, 2, 1])],
@@ -204,6 +204,19 @@ describe('create', () => {
 
       const a = new SomeDiffClass('a');
       const b = new SomeDiffClass('b');
+      const patch = create(a, b);
+      expect(patch).not.toEqual(null);
+      expect(apply(a, patch)).toEqual(b);
+    });
+
+    test('replace root', ({ expect }) => {
+      const a = {
+        some_key: 'some_val',
+        some_other_key: 'some_other_val',
+      };
+      const b = {
+        some_new_key: 'some_new_val',
+      };
       const patch = create(a, b);
       expect(patch).not.toEqual(null);
       expect(apply(a, patch)).toEqual(b);

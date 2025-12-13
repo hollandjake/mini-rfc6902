@@ -1,6 +1,6 @@
 import { bench } from 'vitest';
 import { apply } from './apply';
-import { Patch } from './patch';
+import type { Patch } from './patch';
 import { Pointer } from './pointer';
 
 for (const [name, patch] of [
