@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.6.1...v0.7.0) (2025-12-13)
+
+
+### Features
+
+* Improve create performance ([#22](https://github.com/hollandjake/mini-rfc6902/issues/22)) ([03445f7](https://github.com/hollandjake/mini-rfc6902/commit/03445f79ca49c3867c7cdf3db28ce457cbb06b5b))
+
 ## [0.6.1](https://github.com/hollandjake/mini-rfc6902/compare/v0.6.0...v0.6.1) (2025-09-24)
 
 
