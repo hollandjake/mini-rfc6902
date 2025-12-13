@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.6.1...v0.7.0) (2025-12-13)
+
+
+### Features
+
+* Reduce patch size when full replacement would be better ([#22](https://github.com/hollandjake/mini-rfc6902/issues/22)) ([569537c](https://github.com/hollandjake/mini-rfc6902/commit/569537c401d24948d48836095b5c480869b3ef88))
+
 ## [0.6.1](https://github.com/hollandjake/mini-rfc6902/compare/v0.6.0...v0.6.1) (2025-09-24)
 
 
