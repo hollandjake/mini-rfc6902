@@ -1,5 +1,5 @@
-import { MaxiPatch, MiniPatch, Patch, SerialPatch, maximize, minify, serialize } from '../patch';
-import { Transformer } from './types';
+import { type MaxiPatch, type MiniPatch, maximize, minify, type Patch, type SerialPatch, serialize } from '../patch';
+import type { Transformer } from './types';
 
 /**
  * Convert a Patch into a {@link MiniPatch}
