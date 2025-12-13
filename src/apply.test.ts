@@ -250,6 +250,17 @@ describe('Spec Compliance', () => {
       expect(a).toEqual({ foo: ['bar'] });
     });
   });
+  describe('4.4 - move when from not exist', () => {
+    test.for([
+      ['Maxi + Pointer', [{ op: 'move', from: Pointer.from('/bar'), path: Pointer.from('/foo') }]],
+      ['Maxi + String', [{ op: 'move', from: '/bar', path: '/foo' }]],
+      ['Mini + Pointer', [['>', Pointer.from('/bar'), Pointer.from('/foo')]]],
+      ['Mini + String', [['>', '/bar', '/foo']]],
+    ] as [string, Patch][])('%s', ([, patch], { expect }) => {
+      const a = { foo: ['bar'] };
+      expect(() => apply(a, patch)).toThrow();
+    });
+  });
 });
 
 describe('Extended Spec', () => {

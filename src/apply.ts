@@ -56,8 +56,10 @@ function replace<DocType, V>(target: DocType, [, ptr, newVal]: Mini.ReplaceOp<V>
 }
 
 function move<DocType>(target: DocType, [, from, path]: Mini.MoveOp, opts: ApplyOpts = {}): DocType | undefined {
-  const val = Pointer.from(from).get(target);
-  return Pointer.from(path).push(Pointer.from(from).delete(target), clone(val, opts)) as DocType;
+  const fromPointer = Pointer.from(from);
+  const val = fromPointer.get(target);
+
+  return Pointer.from(path).push(fromPointer.delete(target), clone(val, opts)) as DocType;
 }
 
 function copy<DocType>(target: DocType, [, from, path]: Mini.CopyOp, opts: ApplyOpts = {}): DocType {

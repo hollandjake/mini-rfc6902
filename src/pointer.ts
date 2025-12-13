@@ -31,8 +31,7 @@ export class Pointer {
     // The target is the root, so deleting it would result in a becoming undefined
     if (RootPointer.asymmetricMatch(this)) return undefined;
 
-    const [obj, key] = this.evaluatePointer(a);
-    if (obj === null) throw new MissingError(this);
+    const [obj, key] = this.evaluatePointer(a, true);
 
     if (Array.isArray(obj)) {
       // ptr must be an array index
@@ -50,20 +49,45 @@ export class Pointer {
     return a;
   }
 
-  evaluatePointer<T>(a: unknown): [parent: NonNullable<T> | null, key: Token | undefined, value: unknown] {
+  evaluatePointer<T>(
+    a: unknown,
+    existCheck?: boolean,
+  ): [parent: NonNullable<T> | null, key: Token | undefined, value: unknown] {
     let parent = null;
     let key: Token | undefined = undefined;
     let value = a;
 
     for (let i = 0; i < this.tokens.length; i++) {
       parent = value;
+      if (!parent) {
+        if (existCheck) throw new MissingError(this);
+        value = undefined;
+        break;
+      }
+
+      if (typeof parent !== 'object') throw new PointerError(`Invalid key '${key}' for ${parent}`);
+
       key = this.tokens[i];
       if (key === '-') {
-        if (!parent) value = undefined;
-        else if (Array.isArray(parent)) value = parent[parent.length - 1];
+        if (Array.isArray(parent)) key = parent.length;
         else throw new PointerError(`Invalid key '-' for ${parent}`);
+      }
+
+      if (Array.isArray(parent)) {
+        const arrayKey = Number(key);
+        if (Number.isNaN(arrayKey)) throw new PointerError(`Invalid key '${key}' for ${parent}`);
+        if (existCheck && (arrayKey < 0 || arrayKey >= parent.length)) throw new MissingError(this);
+        value = parent[arrayKey];
       } else {
-        value = parent?.[key as never] ?? undefined;
+        if (parent instanceof Map) {
+          if (existCheck && !parent.has(key)) throw new MissingError(this);
+          value = parent.get(key);
+        } else {
+          let resolvedKey: string | number = key as never;
+          if (typeof key === 'object' && 'toString' in key) resolvedKey = key.toString();
+          if (existCheck && !(resolvedKey in parent)) throw new MissingError(this);
+          value = parent[resolvedKey as never];
+        }
       }
     }
 
@@ -76,7 +100,7 @@ export class Pointer {
   }
 
   get<T>(a: T) {
-    const [, , value] = this.evaluatePointer(a);
+    const [, , value] = this.evaluatePointer(a, true);
     return value;
   }
 
