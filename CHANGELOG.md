@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.7.0...v0.8.0) (2026-03-02)
+
+
+### Features
+
+* add impact optimization ([609bf3f](https://github.com/hollandjake/mini-rfc6902/commit/609bf3fcc8f2971736194581264f326c117f3fc9))
+
 ## [0.7.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.6.1...v0.7.0) (2025-12-13)
 
 
