@@ -120,3 +120,44 @@ describe('difference', () => {
     expect(!b.some((v, i) => v !== (op[2] as Buffer)[i])).toBeTruthy();
   });
 });
+
+describe('optimize: impact', () => {
+  test.for([
+    [
+      { a: 'a', b: 'b' },
+      { a: 'b', b: 'a' },
+      [
+        ['~', '/a', 'b'],
+        ['~', '/b', 'a'],
+      ],
+    ],
+    [
+      { a: 'a', b: 'b', c: 'c' },
+      { a: 'x', b: 'y', c: 'z' },
+      [
+        ['~', '/a', 'x'],
+        ['~', '/b', 'y'],
+        ['~', '/c', 'z'],
+      ],
+    ],
+    [
+      [1, 2, 3],
+      [4, 5, 6],
+      [
+        ['~', '/2', 6],
+        ['~', '/1', 5],
+        ['~', '/0', 4],
+      ],
+    ],
+    [
+      { nested: { a: 1, b: 2 } },
+      { nested: { a: 10, b: 20 } },
+      [
+        ['~', '/nested/a', 10],
+        ['~', '/nested/b', 20],
+      ],
+    ],
+  ])('(%s, %s)', ([a, b, expected], { expect }) => {
+    expect(diff(a, b, RootPointer, { optimize: 'impact' })).toEqual(expected);
+  });
+});

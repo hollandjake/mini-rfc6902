@@ -61,9 +61,11 @@ export function create(input: any, output: any, opts: CreateOpts & { transform: 
  */
 export function create(input: any, output: any, opts: CreateOpts & { transform: 'serialize' }): SerialPatch | null;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
- * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
- * as a full replacement may result in more bytes being sent.
+ * Returns a list of operations (a JSON Patch) comprising the operations to transform `input` into `output`.
+ * By default, it attempts to produce the smallest patch by byte size,
+ * this does not necessarily mean it impacts the least number of fields,
+ * as a full replacement may result in fewer bytes being sent.
+ * Use `opts.optimize: 'impact'` to optimize for the least number of fields impacted instead.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.

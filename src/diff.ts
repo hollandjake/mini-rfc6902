@@ -25,6 +25,7 @@ import {
   eqPrimitive,
   eqSet,
   eqWrapper,
+  type OptimizeOpts,
   SKIP,
   skip,
   type TransformOpts,
@@ -44,9 +45,10 @@ const defaultDiffers: Differ<{}, MiniPatch>[] = [
 ];
 
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
- * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
- * as a full replacement may result in more bytes being sent.
+ * Returns a list of operations (a JSON Patch) comprising the operations to transform `input` into `output`.
+ * By default, it attempts to produce the smallest patch by size, this does not necessarily mean the smallest
+ * impacting operations, sometimes a full replacement may result in fewer bytes but would impact more fields.
+ * Use `opts.optimize: 'impact'` to optimize for the least number of fields impacted instead.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
@@ -119,9 +121,11 @@ export function diff(
   opts: DiffOpts & { transform: 'serialize' },
 ): SerialPatch;
 /**
- * Returns a list of operations (a JSON Patch) comprised of the operations to transform `input` into `output`.
- * It attempts to produce the smallest patch, this does not necessarily mean the smallest number of operations,
- * as a full replacement may result in more bytes being sent.
+ * Returns a list of operations (a JSON Patch) comprising the operations to transform `input` into `output`.
+ * By default, it attempts to produce the smallest patch by byte size,
+ * this does not necessarily mean it impacts the least number of fields,
+ * as a full replacement may result in fewer bytes being sent.
+ * Use `opts.optimize: 'impact'` to optimize for the least number of fields impacted instead.
  *
  * For array transformations we attempt to reduce the size of operations by running an edit distance style algorithm,
  * with support for `add`, `remove`, `replace`, `copy`, `array replace` operations.
@@ -183,7 +187,7 @@ export function diff(input: unknown, output: unknown, ptr: Pointer, opts?: DiffO
       });
 
       // Could a full replacement be better? if so, let's use that
-      patch = checkFullReplace(output, ptr, patch, opts);
+      patch = checkFullReplace(input, output, ptr, patch, opts);
 
       return transform(clone(patch, opts), opts?.transform);
     } catch (e) {
@@ -274,7 +278,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Add
       if (outputIndex < outputSize) {
         const op: Mini.Op = ['+', ptr.extend(inputIndex), output[outputIndex]];
-        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
+        const cost = dp[inputIndex][outputIndex] + getCost(input[inputIndex], op, opts);
         if (cost < dp[inputIndex][outputIndex + 1]) {
           dp[inputIndex][outputIndex + 1] = cost;
           ops[inputIndex][outputIndex + 1] = op;
@@ -284,7 +288,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Remove
       if (inputIndex < inputSize) {
         const op: Mini.Op = ['-', ptr.extend(inputIndex)];
-        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
+        const cost = dp[inputIndex][outputIndex] + getCost(input[inputIndex], op, opts);
         if (cost < dp[inputIndex + 1][outputIndex]) {
           dp[inputIndex + 1][outputIndex] = cost;
           ops[inputIndex + 1][outputIndex] = op;
@@ -294,7 +298,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Replace
       if (inputIndex < inputSize && outputIndex < outputSize) {
         const op: Mini.Op = ['~', ptr.extend(inputIndex), output[outputIndex]];
-        const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
+        const cost = dp[inputIndex][outputIndex] + getCost(input[inputIndex], op, opts);
         if (cost < dp[inputIndex + 1][outputIndex + 1]) {
           dp[inputIndex + 1][outputIndex + 1] = cost;
           ops[inputIndex + 1][outputIndex + 1] = op;
@@ -306,7 +310,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
         for (let k = 0; k < inputIndex; k++) {
           if (eq(input[k], output[outputIndex], opts)) {
             const op: Mini.Op = ['^', ptr.extend(k), ptr.extend(outputIndex)];
-            const cost = dp[inputIndex][outputIndex] + getCost(op, opts);
+            const cost = dp[inputIndex][outputIndex] + getCost(input[k], op, opts);
             if (cost < dp[inputIndex][outputIndex + 1]) {
               dp[inputIndex][outputIndex + 1] = cost;
               ops[inputIndex][outputIndex + 1] = op;
@@ -318,7 +322,7 @@ function diffArray(input: Array<unknown>, output: Array<unknown>, ptr: Pointer, 
       // Replace Entire Array
       if (inputIndex < inputSize && outputIndex < outputSize) {
         const replaceArrayOp: Mini.Op = ['~', ptr, output.slice(0, outputIndex + 1)];
-        const replaceArrayCost = getCost(replaceArrayOp, opts);
+        const replaceArrayCost = getCost(input, replaceArrayOp, opts);
         if (replaceArrayCost < dp[inputIndex][outputIndex]) {
           dp[inputIndex + 1][outputIndex + 1] = replaceArrayCost;
           ops[inputIndex + 1][outputIndex + 1] = replaceArrayOp;
@@ -460,31 +464,109 @@ function diffObject(
   return ops;
 }
 
-function getCost(x: Op, opts?: TransformOpts) {
+/**
+ * Count the number of fields impacted by an operation
+ * - For operations on leaf values (primitives, etc.), cost is 1
+ * - For operations that replace objects/arrays, count all leaf fields
+ */
+function getFieldsImpacted(input: unknown, op: Mini.Op): number {
+  switch (op[0]) {
+    case '+':
+      return countFields(op[2]);
+    case '-':
+    case '^':
+    case '>':
+      return countFields(input);
+    case '~':
+      return countFields(input) + countFields(op[2]);
+    case '?':
+      return 0;
+  }
+}
+
+/**
+ * Recursively count the number of leaf fields in a value
+ */
+function countFields(value: unknown): number {
+  if (typeof value !== 'object' || value === null) return 1;
+
+  // Any objects have a base cost of 1 just for being objects
+  // This sways the system to prefer primitives
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) return 1;
+    return value.reduce((sum, item) => sum + countFields(item), 1);
+  }
+
+  // Handle special objects (Date, RegExp, etc.) as single fields
+  if (
+    value instanceof Date ||
+    value instanceof RegExp ||
+    value instanceof Error ||
+    value instanceof String ||
+    value instanceof Number ||
+    value instanceof Boolean ||
+    ArrayBuffer.isView(value) ||
+    value instanceof ArrayBuffer
+  ) {
+    return 1;
+  }
+
+  // Handle Set and Map
+  if (value instanceof Set) {
+    if (value.size === 0) return 1;
+    return Array.from(value).reduce((sum, item) => sum + countFields(item), 1);
+  }
+
+  if (value instanceof Map) {
+    if (value.size === 0) return 1;
+    return Array.from(value.values()).reduce((sum, item) => sum + countFields(item), 1);
+  }
+
+  // Regular objects: count all properties
+  const keys = Object.keys(value);
+  const symbols = Object.getOwnPropertySymbols(value);
+  const allKeys = [...keys, ...symbols];
+
+  if (allKeys.length === 0) return 1;
+  return allKeys.reduce((sum, key) => sum + countFields((value as any)[key]), 1);
+}
+
+function getCost(input: any, x: Op, opts?: TransformOpts & OptimizeOpts) {
+  // When optimizing for impact, count the number of fields impacted
+  if (opts?.optimize === 'impact') return getFieldsImpacted(input, minifyOp(x));
+
   if (opts?.transform === 'serialize') return serializeOp(x).length;
   if (opts?.transform === 'minify') x = minifyOp(x);
   if (opts?.transform === 'maximize') x = maximizeOp(x);
+
   return JSON.stringify(x).length;
 }
 
-function getPatchCost(patch: Patch, opts?: TransformOpts) {
-  patch = transform(patch, opts?.transform);
+function getPatchCost(input: unknown, patch: MiniPatch, opts?: TransformOpts & OptimizeOpts) {
+  // When optimizing for impact, sum the fields impacted by all operations
+  if (opts?.optimize === 'impact') return patch.reduce((sum, op) => sum + getFieldsImpacted(input, op), 0);
 
-  if (opts?.transform === 'serialize') return (patch as SerialPatch).length;
-  return (patch as Op[]).reduce((sum, op) => sum + getCost(op, opts), 0);
+  const transformedPatch = transform(patch, opts?.transform);
+
+  if (opts?.transform === 'serialize') return (transformedPatch as SerialPatch).length;
+  return (transformedPatch as Op[]).reduce((sum, op) => sum + getCost(input, op, opts), 0);
 }
 
 function checkFullReplace(
+  input: unknown,
   output: unknown,
   ptr: Pointer,
   patch: MiniPatch,
-  opts?: CloneOpts & TransformOpts,
+  opts?: CloneOpts & TransformOpts & OptimizeOpts,
 ): MiniPatch {
+  if (opts?.optimize === 'impact') return patch;
+
   try {
     // Check whether a full replacement would be smaller than the defined ops
     const fullReplace: MiniPatch = [['~', ptr, clone(output, opts)]];
-    const fullReplaceCost = getPatchCost(fullReplace, opts);
-    const opsCost = getPatchCost(patch, opts);
+    const fullReplaceCost = getPatchCost(input, fullReplace, opts);
+    const opsCost = getPatchCost(input, patch, opts);
 
     if (fullReplaceCost < opsCost) return fullReplace;
   } catch (e) {

@@ -5,7 +5,9 @@ export type CloneOpts = { clone?: Cloner };
 export type EqOpts = { eq?: EqFunc };
 export type Transformer = 'minify' | 'maximize' | 'serialize';
 export type TransformOpts = { transform?: Transformer };
-export type CreateOpts = EqOpts & CloneOpts & TransformOpts & { diff?: Differ };
+export type OptimizeStrategy = 'byte' | 'impact';
+export type OptimizeOpts = { optimize?: OptimizeStrategy };
+export type CreateOpts = EqOpts & CloneOpts & TransformOpts & OptimizeOpts & { diff?: Differ };
 export type DiffOpts = CreateOpts;
 
 export type ApplyOpts = EqOpts & CloneOpts & TransformOpts;
