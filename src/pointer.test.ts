@@ -70,6 +70,92 @@ test('BSON encoding', ({ expect }) => {
   expect(Pointer.from(p.toBSON())).toEqual(p);
 });
 
+describe('move', () => {
+  test.for([
+    [
+      'renaming a key in place preserves its original position',
+      { a: 1, b: 2, c: 3 },
+      '/b',
+      '/x',
+      2,
+      { a: 1, x: 2, c: 3 },
+      (r: any) => Object.keys(r),
+      ['a', 'x', 'c'],
+    ],
+    [
+      'moving a key onto itself is a no-op, position included',
+      { a: 1, b: 2, c: 3 },
+      '/b',
+      '/b',
+      2,
+      { a: 1, b: 2, c: 3 },
+      (r: any) => Object.keys(r),
+      ['a', 'b', 'c'],
+    ],
+    [
+      'moving a key onto a different existing key overwrites it in place',
+      { a: 1, b: 2, c: 3 },
+      '/a',
+      '/c',
+      1,
+      { b: 2, c: 1 },
+      (r: any) => Object.keys(r),
+      ['b', 'c'],
+    ],
+    [
+      'moving between different objects appends at the destination',
+      { foo: { bar: 'baz', waldo: 'fred' }, qux: { corge: 'grault' } },
+      '/foo/waldo',
+      '/qux/thud',
+      'fred',
+      { foo: { bar: 'baz' }, qux: { corge: 'grault', thud: 'fred' } },
+      (r: any) => Object.keys(r.qux),
+      ['corge', 'thud'],
+    ],
+    [
+      'moving an array element preserves array semantics',
+      { foo: ['all', 'grass', 'cows', 'eat'] },
+      '/foo/1',
+      '/foo/3',
+      'grass',
+      { foo: ['all', 'cows', 'eat', 'grass'] },
+      null,
+      null,
+    ],
+    [
+      'renaming a Map key preserves its original position',
+      new Map([
+        ['a', 1],
+        ['b', 2],
+        ['c', 3],
+      ]),
+      '/b',
+      '/x',
+      2,
+      new Map([
+        ['a', 1],
+        ['x', 2],
+        ['c', 3],
+      ]),
+      (r: any) => [...r.keys()],
+      ['a', 'x', 'c'],
+    ],
+  ] as [string, unknown, string, string, unknown, unknown, ((r: any) => unknown[]) | null, unknown[] | null][])('%s', ([
+    ,
+    target,
+    from,
+    to,
+    newVal,
+    expected,
+    getKeys,
+    expectedKeys,
+  ], { expect }) => {
+    const result = Pointer.from(to).move(target, Pointer.from(from), newVal);
+    expect(result).toEqual(expected);
+    if (getKeys) expect(getKeys(result)).toEqual(expectedKeys);
+  });
+});
+
 describe('asymmetricMatch', () => {
   test.for([
     [Pointer.from(''), Pointer.from('')],

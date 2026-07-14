@@ -108,6 +108,32 @@ export class Pointer {
     return `Pointer '${this.toString()}'`;
   }
 
+  /**
+   * Move `newVal` (the value taken from `from`) to this pointer's location.
+   *
+   * When `from` and `to` are members of the same object/map, this is treated as an in-place
+   * rename/overwrite, so the member keeps its original position rather than being appended to
+   * the end (which is otherwise unavoidable in JS, since a fresh key is always inserted last).
+   */
+  move<T, V>(a: T, from: Pointer, newVal: V): T | V {
+    const [fromParent, fromKey] = from.evaluatePointer(a, true);
+    const [toParent, toKey] = this.evaluatePointer(a);
+
+    if (
+      fromParent &&
+      fromParent === toParent &&
+      fromKey !== undefined &&
+      toKey !== undefined &&
+      !Array.isArray(fromParent) &&
+      (fromKey === toKey || !hasKey(fromParent, toKey))
+    ) {
+      reinsertKey(fromParent, fromKey, toKey, newVal);
+      return a;
+    }
+
+    return this.push(from.delete(a), newVal) as T | V;
+  }
+
   push<T, V>(a: T, newVal: V): T | V {
     const [obj, key] = this.evaluatePointer(a);
 
@@ -205,4 +231,39 @@ function tokenEscape(token: Token): string {
  */
 function tokenUnescape(token: string): Token {
   return token.replace(/~1/g, '/').replace(/~0/g, '~');
+}
+
+function hasKey(parent: object, key: Token): boolean {
+  if (parent instanceof Map) return parent.has(key);
+  return (key as PropertyKey) in parent;
+}
+
+/**
+ * Replace `oldKey` with `newKey` (which may be the same key) in place, preserving the position
+ * `oldKey` originally occupied, by temporarily removing and re-adding every key that followed it.
+ */
+function reinsertKey(parent: object, oldKey: Token, newKey: Token, value: unknown): void {
+  if (parent instanceof Map) {
+    const keys = [...parent.keys()];
+    const tail = keys.slice(keys.indexOf(oldKey) + 1).map((key): [unknown, unknown] => [key, parent.get(key)]);
+
+    parent.delete(oldKey);
+    for (const [key] of tail) parent.delete(key);
+
+    parent.set(newKey, value);
+    for (const [key, val] of tail) parent.set(key, val);
+    return;
+  }
+
+  const obj = parent as Record<PropertyKey, unknown>;
+  const keys: (string | symbol)[] = [...Object.keys(obj), ...Object.getOwnPropertySymbols(obj)];
+  const tail = keys
+    .slice(keys.indexOf(oldKey as string | symbol) + 1)
+    .map((key): [PropertyKey, unknown] => [key, obj[key]]);
+
+  delete obj[oldKey as PropertyKey];
+  for (const [key] of tail) delete obj[key];
+
+  obj[newKey as PropertyKey] = value;
+  for (const [key, val] of tail) obj[key] = val;
 }
