@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.8.0...v0.9.0) (2026-07-14)
+
+
+### Features
+
+* preserve key order on move operations in objects ([ba1d07d](https://github.com/hollandjake/mini-rfc6902/commit/ba1d07d40ea67998218da92b52a249b0d603161c))
+
 ## [0.8.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.7.0...v0.8.0) (2026-03-02)
 
 
