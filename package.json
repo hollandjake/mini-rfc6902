@@ -1,6 +1,6 @@
 {
   "name": "mini-rfc6902",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "TypeScript implementation of RFC6902 with mini-rfc6902 format support",
   "keywords": [
     "diff",
