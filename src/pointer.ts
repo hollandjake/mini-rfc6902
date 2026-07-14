@@ -12,7 +12,7 @@ type Token = string | number | { toString: () => string };
 export class Pointer {
   constructor(readonly tokens: Token[]) {}
 
-  public static from(str: Pointer | string | Uint8Array | ArrayBuffer) {
+  public static from(str: Pointer | string | Uint8Array | ArrayBuffer): Pointer {
     if (str instanceof Pointer) return str;
     if (str) {
       if (typeof str === 'object') {
@@ -94,17 +94,17 @@ export class Pointer {
     return [parent as never, key, value];
   }
 
-  extend(token?: Token) {
+  extend(token?: Token): Pointer {
     if (token === -1) token = '-';
     return new Pointer(token !== undefined ? [...this.tokens, token] : this.tokens);
   }
 
-  get<T>(a: T) {
+  get<T>(a: T): unknown {
     const [, , value] = this.evaluatePointer(a, true);
     return value;
   }
 
-  public inspect() {
+  public inspect(): string {
     return `Pointer '${this.toString()}'`;
   }
 
@@ -155,24 +155,24 @@ export class Pointer {
     return this.toString();
   }
 
-  public toJSON() {
+  public toJSON(): string {
     return this.toString();
   }
 
   /**
    * https://datatracker.ietf.org/doc/html/rfc6901#section-5
    */
-  public toString() {
+  public toString(): string {
     return this.tokens.length ? `/${this.tokens.map(tokenEscape).join('/')}` : '';
   }
 
-  public asymmetricMatch(other: unknown) {
+  public asymmetricMatch(other: unknown): boolean {
     const o = Pointer.from(other as never);
     return this.tokens.length === o.tokens.length && this.tokens.every((t, i) => String(o.tokens[i]) === String(t));
   }
 }
 
-export const RootPointer = new Pointer([]);
+export const RootPointer: Pointer = new Pointer([]);
 
 /**
  * Escape token to ensure valid JSON Pointer string

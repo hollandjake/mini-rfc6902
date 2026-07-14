@@ -13,7 +13,7 @@ export type DiffOpts = CreateOpts;
 export type ApplyOpts = EqOpts & CloneOpts & TransformOpts;
 
 export type SkipFunc = () => never;
-export const SKIP = Symbol('skip');
+export const SKIP: unique symbol = Symbol('skip');
 
 export function skip(): never {
   throw SKIP;

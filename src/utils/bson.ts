@@ -1,4 +1,7 @@
-module.exports = {
+const exports: {
+  serializeBSON: typeof import('bson').serialize;
+  deserializeBSON: typeof import('bson').deserialize;
+} = {
   serializeBSON: () => {
     throw new ReferenceError("Serialization requires 'bson' to be installed");
   },
@@ -12,7 +15,10 @@ module.exports = {
 try {
   const bson = require('bson');
   if (bson?.serialize && bson?.deserialize) {
-    module.exports.serializeBSON = bson.serialize;
-    module.exports.deserializeBSON = bson.deserialize;
+    exports.serializeBSON = bson.serialize;
+    exports.deserializeBSON = bson.deserialize;
   }
 } catch {}
+
+export const serializeBSON: typeof import('bson').serialize = exports.serializeBSON;
+export const deserializeBSON: typeof import('bson').deserialize = exports.deserializeBSON;
