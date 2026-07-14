@@ -5,6 +5,13 @@
 
 ### Features
 
+* preserve key order on move operations in objects ([ec71646](https://github.com/hollandjake/mini-rfc6902/commit/ec716467e7640a746fb97126a68d3eeea47a15a4))
+
+## [0.9.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.8.0...v0.9.0) (2026-07-14)
+
+
+### Features
+
 * preserve key order on move operations in objects ([5229e0e](https://github.com/hollandjake/mini-rfc6902/commit/5229e0ea9f62b3069b7668608c9194965a99a357))
 
 ## [0.8.0](https://github.com/hollandjake/mini-rfc6902/compare/v0.7.0...v0.8.0) (2026-03-02)
