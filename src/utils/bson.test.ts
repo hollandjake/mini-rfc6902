@@ -1,6 +1,6 @@
 import { test, vi } from 'vitest';
 
-void vi.hoisted(async () => {
+await vi.hoisted(async () => {
   const { Module } = await import('node:module');
 
   // @ts-expect-error
@@ -15,7 +15,7 @@ void vi.hoisted(async () => {
 
 // Effectively unload bson from the loaded modules
 test('error on bson missing', async ({ expect }) => {
-  const { serializeBSON, deserializeBSON } = await import('./bson.cjs');
+  const { serializeBSON, deserializeBSON } = await import('./bson');
   expect(() => serializeBSON({})).toThrow(ReferenceError);
   expect(() => deserializeBSON(new Uint8Array())).toThrow(ReferenceError);
 });

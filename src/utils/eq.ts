@@ -72,7 +72,7 @@ export function eqNullable(a: unknown, b: unknown, opts: WithSkip<EqOpts>): bool
  * Check if any equality functions exist and if so use them
  */
 export function eqCustom(a: unknown, b: unknown, opts: WithSkip<EqOpts>): boolean {
-  if (!!a && typeof a === 'object') {
+  if (a && typeof a === 'object') {
     if ('eq' in a && typeof a.eq === 'function') return a.eq(b);
     if ('isEqual' in a && typeof a.isEqual === 'function') return a.isEqual(b);
     if ('equal' in a && typeof a.equal === 'function') return a.equal(b);
@@ -190,8 +190,8 @@ export function eqMap(a: object, b: object, opts: WithSkip<EqOpts>): boolean {
   return false;
 }
 
-const aSeen = Symbol('a-seen');
-const bSeen = Symbol('b-seen');
+const aSeen: unique symbol = Symbol('a-seen');
+const bSeen: unique symbol = Symbol('b-seen');
 
 /**
  * Check equality of js objects

@@ -9,7 +9,7 @@ import { type ApplyOpts, clone, eq } from './utils';
  * @param patch - The patch to apply
  * @param opts - Optional options for custom handling
  */
-export function apply<DocType>(target: DocType, patch: Patch | null, opts: ApplyOpts = {}) {
+export function apply<DocType>(target: DocType, patch: Patch | null, opts: ApplyOpts = {}): unknown {
   // Create a deep copy of the object
   let b: unknown = clone(target, opts);
 
@@ -57,9 +57,9 @@ function replace<DocType, V>(target: DocType, [, ptr, newVal]: Mini.ReplaceOp<V>
 
 function move<DocType>(target: DocType, [, from, path]: Mini.MoveOp, opts: ApplyOpts = {}): DocType | undefined {
   const fromPointer = Pointer.from(from);
-  const val = fromPointer.get(target);
+  const val = clone(fromPointer.get(target), opts);
 
-  return Pointer.from(path).push(fromPointer.delete(target), clone(val, opts)) as DocType;
+  return Pointer.from(path).move(target, fromPointer, val) as DocType;
 }
 
 function copy<DocType>(target: DocType, [, from, path]: Mini.CopyOp, opts: ApplyOpts = {}): DocType {

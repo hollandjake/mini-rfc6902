@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "moduleResolution": "Node",
-    "module": "ES2020",
+    "lib": ["ESNext"],
+    "module": "ESNext",
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "isolatedDeclarations": true,
     "declarationMap": false,
-    "skipLibCheck": true,
     "noEmit": true,
-    "rootDir": "src"
+    "rootDir": "src",
+    "outDir": "dist"
   },
-  "extends": "./node_modules/gts/tsconfig-google.json",
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "build.ts", "vitest.config.ts"]
 }
