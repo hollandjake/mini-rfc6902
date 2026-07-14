@@ -351,4 +351,45 @@ describe('Extended Spec', () => {
       expect(apply(a, [['~', '', {}]])).toEqual({});
     });
   });
+  describe('E.4 - Key order preservation on move', () => {
+    test('renaming a key in place keeps its original position', ({ expect }) => {
+      const a = { a: 1, b: 2, c: 3 };
+      const result = apply(a, [['>', '/b', '/x']]);
+      expect(Object.keys(result as any)).toEqual(['a', 'x', 'c']);
+      expect(result).toEqual({ a: 1, x: 2, c: 3 });
+    });
+    test('moving a key onto itself is a no-op, position included', ({ expect }) => {
+      const a = { a: 1, b: 2, c: 3 };
+      const result = apply(a, [['>', '/b', '/b']]);
+      expect(Object.keys(result as any)).toEqual(['a', 'b', 'c']);
+      expect(result).toEqual({ a: 1, b: 2, c: 3 });
+    });
+    test('moving a key onto a different existing key overwrites in place', ({ expect }) => {
+      const a = { a: 1, b: 2, c: 3 };
+      const result = apply(a, [['>', '/a', '/c']]);
+      expect(Object.keys(result as any)).toEqual(['b', 'c']);
+      expect(result).toEqual({ b: 2, c: 1 });
+    });
+    test('moving between different objects still appends at the destination', ({ expect }) => {
+      const a = { foo: { bar: 'baz', waldo: 'fred' }, qux: { corge: 'grault' } };
+      const result = apply(a, [['>', '/foo/waldo', '/qux/thud']]);
+      expect(Object.keys((result as any).qux)).toEqual(['corge', 'thud']);
+    });
+    test('renaming a key on a Map keeps its original position', ({ expect }) => {
+      const a = {
+        m: new Map([
+          ['a', 1],
+          ['b', 2],
+          ['c', 3],
+        ]),
+      };
+      const result = apply(a, [['>', '/m/b', '/m/x']]);
+      expect([...(result as any).m.keys()]).toEqual(['a', 'x', 'c']);
+      expect([...(result as any).m.entries()]).toEqual([
+        ['a', 1],
+        ['x', 2],
+        ['c', 3],
+      ]);
+    });
+  });
 });

@@ -10,7 +10,7 @@ describe('primitive', () => {
 });
 
 describe('array', () => {
-  test.for([[[]], [[null, undefined, 123, 'string', BigInt(123), () => {}, Symbol('symbol')]]])('%s', ([value], {
+  test.for([[[]], [[null, undefined, 123, 'string', BigInt(123), () => {}, Symbol('symbol')]]])('%o', ([value], {
     expect,
   }) => {
     const cloned = clone(value, {});

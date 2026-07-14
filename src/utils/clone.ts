@@ -10,7 +10,7 @@ const defaultCloners: Cloner[] = [
   cloneObject,
 ];
 
-const refs = Symbol('refs');
+const refs: unique symbol = Symbol('refs');
 
 export function clone<T>(val: T, opts?: CloneOpts & { [refs]?: Map<any, any> }): T {
   // Run custom
